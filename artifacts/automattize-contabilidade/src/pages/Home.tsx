@@ -1,38 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const BASE = import.meta.env.BASE_URL;
+const API = "/api";
 
 function Logo({ size = 36 }: { size?: number }) {
   return (
-    <div className="flex items-center gap-3">
-      <img
-        src={`${BASE}logo-nobg.png`}
-        alt="Automattize logo"
-        style={{ width: size, height: size, objectFit: "contain" }}
-      />
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <img src={`${BASE}logo-nobg.png`} alt="Logo" style={{ width: size, height: size, objectFit: "contain" }} />
       <div>
-        <div
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: 800,
-            fontSize: 15,
-            letterSpacing: "0.5px",
-            color: "#ffffff",
-            lineHeight: 1.1,
-          }}
-        >
+        <div style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 800, fontSize: 15, letterSpacing: "0.5px", color: "#fff", lineHeight: 1.1 }}>
           AUTOMATTIZE
         </div>
-        <div
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: 500,
-            fontSize: 10,
-            letterSpacing: "2.5px",
-            color: "#60a5fa",
-            textTransform: "uppercase",
-          }}
-        >
+        <div style={{ fontFamily: "'Montserrat',sans-serif", fontWeight: 500, fontSize: 10, letterSpacing: "2.5px", color: "#60a5fa", textTransform: "uppercase" }}>
           CONTABILIDADE
         </div>
       </div>
@@ -40,612 +19,433 @@ function Logo({ size = 36 }: { size?: number }) {
   );
 }
 
+/* ─────────────────────────────────────────── PROPOSTA DRAWER ── */
+function PropostaDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const today = new Date().toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
+  const [servicos, setServicos] = useState<string[]>([]);
+  const [regime, setRegime] = useState("");
+  const [movimentacao, setMovimentacao] = useState("");
+  const [form, setForm] = useState({ nome: "", email: "", cnpj: "", faturamento: "" });
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
+  const drawerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  const toggleServico = (s: string) =>
+    setServicos(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch(`${API}/proposals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dataSolicitacao: new Date().toISOString().split("T")[0],
+          servicos,
+          nomeSocio: form.nome,
+          email: form.email,
+          cnpj: form.cnpj,
+          regimeTributario: regime,
+          faturamentoMensal: form.faturamento,
+          movimentacaoFinanceira: movimentacao,
+        }),
+      });
+      if (!res.ok) throw new Error("Erro");
+      setDone(true);
+    } catch {
+      setError("Ocorreu um erro. Tente novamente.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "10px 14px",
+    border: "1.5px solid #d1d5db", borderRadius: 8,
+    fontSize: 14, fontFamily: "inherit", color: "#0a1628",
+    background: "#fff", outline: "none", transition: "border-color 0.2s",
+  };
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700,
+    letterSpacing: 1.2, textTransform: "uppercase", color: "#475569",
+    display: "block", marginBottom: 6,
+  };
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
+          zIndex: 1100, opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.3s",
+        }}
+      />
+      {/* Drawer */}
+      <div
+        ref={drawerRef}
+        style={{
+          position: "fixed", top: 0, right: 0, bottom: 0,
+          width: "min(480px, 100vw)",
+          background: "#fff",
+          zIndex: 1200,
+          transform: open ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+          display: "flex", flexDirection: "column",
+          boxShadow: "-8px 0 40px rgba(0,0,0,0.18)",
+        }}
+      >
+        {/* Header */}
+        <div style={{ background: "#0a1628", padding: "28px 28px 20px", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8 }}>
+                SOLICITAR<br />PROPOSTA
+              </div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+                Preencha os dados e receba uma proposta personalizada em até 24h.
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, width: 36, height: 36, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginLeft: 16 }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
+          {done ? (
+            <div style={{ textAlign: "center", padding: "60px 0" }}>
+              <div style={{ marginBottom: 20 }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.5" style={{ margin: "0 auto", display: "block" }}>
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 20, fontWeight: 800, color: "#0a1628", marginBottom: 12 }}>Proposta Solicitada!</div>
+              <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
+                Recebemos seus dados. Nossa equipe entrará em contato em até 24 horas úteis com uma proposta personalizada.
+              </p>
+              <button onClick={() => { setDone(false); setServicos([]); setRegime(""); setMovimentacao(""); setForm({ nome: "", email: "", cnpj: "", faturamento: "" }); }}
+                style={{ marginTop: 24, padding: "10px 24px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: 1, cursor: "pointer", textTransform: "uppercase" }}>
+                Nova Solicitação
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {/* Data */}
+              <div>
+                <label style={labelStyle}>Data</label>
+                <div style={{ ...inputStyle, color: "#64748b", background: "#f8fafc", cursor: "default" }}>{today}</div>
+              </div>
+
+              {/* Serviços */}
+              <div>
+                <label style={labelStyle}>Serviços de Interesse</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {["Contabilidade", "BPO Financeiro", "Departamento Pessoal", "Planejamento Tributário"].map(s => (
+                    <label key={s} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "9px 14px", border: `1.5px solid ${servicos.includes(s) ? "#2563eb" : "#e2e8f0"}`, borderRadius: 8, background: servicos.includes(s) ? "#eff6ff" : "#fafafa", transition: "all 0.15s" }}>
+                      <div style={{ width: 18, height: 18, border: `2px solid ${servicos.includes(s) ? "#2563eb" : "#d1d5db"}`, borderRadius: 4, background: servicos.includes(s) ? "#2563eb" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                        {servicos.includes(s) && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                      </div>
+                      <input type="checkbox" checked={servicos.includes(s)} onChange={() => toggleServico(s)} style={{ display: "none" }} />
+                      <span style={{ fontSize: 14, color: "#0a1628" }}>{s}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nome */}
+              <div>
+                <label style={labelStyle}>Nome do Sócio / Solicitante</label>
+                <input type="text" placeholder="Nome completo" required value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} style={inputStyle} />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label style={labelStyle}>E-mail</label>
+                <input type="email" placeholder="seu@email.com" required value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} style={inputStyle} />
+              </div>
+
+              {/* CNPJ */}
+              <div>
+                <label style={labelStyle}>CNPJ</label>
+                <input type="text" placeholder="00.000.000/0000-00" value={form.cnpj} onChange={e => setForm(p => ({ ...p, cnpj: e.target.value }))} style={inputStyle} />
+              </div>
+
+              {/* Regime */}
+              <div>
+                <label style={labelStyle}>Regime Tributário</label>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {["Lucro Real", "Lucro Presumido", "Simples"].map(r => (
+                    <button key={r} type="button" onClick={() => setRegime(r)}
+                      style={{ padding: "9px 16px", border: `1.5px solid ${regime === r ? "#2563eb" : "#e2e8f0"}`, borderRadius: 8, background: regime === r ? "#eff6ff" : "#fff", color: regime === r ? "#2563eb" : "#475569", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Faturamento */}
+              <div>
+                <label style={labelStyle}>Faturamento Mensal (Média)</label>
+                <input type="text" placeholder="R$ 0,00" value={form.faturamento} onChange={e => setForm(p => ({ ...p, faturamento: e.target.value }))} style={inputStyle} />
+              </div>
+
+              {/* Movimentação */}
+              <div>
+                <label style={labelStyle}>Movimentação Financeira</label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {["Pequena", "Média", "Grande"].map(m => (
+                    <button key={m} type="button" onClick={() => setMovimentacao(m)}
+                      style={{ flex: 1, padding: "9px 0", border: `1.5px solid ${movimentacao === m ? "#2563eb" : "#e2e8f0"}`, borderRadius: 8, background: movimentacao === m ? "#eff6ff" : "#fff", color: movimentacao === m ? "#2563eb" : "#475569", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {error && <div style={{ fontSize: 13, color: "#dc2626", padding: "10px 14px", background: "#fef2f2", borderRadius: 8, border: "1px solid #fecaca" }}>{error}</div>}
+
+              <button type="submit" disabled={sending}
+                style={{ padding: "14px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 9, fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer", marginTop: 4, opacity: sending ? 0.7 : 1, transition: "all 0.2s" }}>
+                {sending ? "Enviando..." : "Gerar Proposta →"}
+              </button>
+              <p style={{ fontSize: 11, color: "#94a3b8", textAlign: "center", marginTop: -8 }}>* Valores variam conforme tipo de serviço e tamanho das operações.</p>
+            </form>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────── NAV ── */
 const NAV_LINKS = [
   { href: "#quem-atendemos", label: "Quem Atendemos" },
   { href: "#servicos", label: "Serviços" },
   { href: "#bpo", label: "BPO Financeiro" },
+  { href: "#jornada", label: "Jornada" },
   { href: "#diferenciais", label: "Diferenciais" },
-  { href: "#ceo", label: "Nossa Equipe" },
+  { href: "#ceo", label: "Equipe" },
   { href: "#contato", label: "Contato" },
 ];
 
-function NavBar() {
+function NavBar({ onProposta }: { onProposta: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handler);
-    return () => window.removeEventListener("scroll", handler);
+    const h = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", h);
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const navClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
     setMobileOpen(false);
   };
 
   return (
-    <nav
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 999,
-        background: scrolled ? "rgba(10,22,40,0.98)" : "rgba(10,22,40,0.97)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(37,99,235,0.3)",
-        padding: "0 40px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        fontFamily: "'Montserrat', sans-serif",
-      }}
-    >
-      <a href="#" style={{ textDecoration: "none" }} onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
-        <Logo size={36} />
+    <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 999, background: scrolled ? "rgba(10,22,40,0.98)" : "rgba(10,22,40,0.95)", backdropFilter: "blur(14px)", borderBottom: "1px solid rgba(37,99,235,0.25)", padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "'Montserrat',sans-serif", height: 64 }}>
+      <a href="#" style={{ textDecoration: "none" }} onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+        <Logo size={34} />
       </a>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 0,
-          overflowX: "auto",
-        }}
-        className="hidden md:flex"
-      >
-        {NAV_LINKS.map((l) => (
-          <a
-            key={l.href}
-            href={l.href}
-            onClick={(e) => handleNavClick(e, l.href)}
-            style={{
-              textDecoration: "none",
-              color: "rgba(255,255,255,0.9)",
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.8px",
-              textTransform: "uppercase",
-              padding: "20px 16px",
-              borderBottom: "2px solid transparent",
-              whiteSpace: "nowrap",
-              transition: "all 0.2s",
-              display: "block",
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.color = "#60a5fa";
-              (e.target as HTMLElement).style.borderBottomColor = "#60a5fa";
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.color = "rgba(255,255,255,0.9)";
-              (e.target as HTMLElement).style.borderBottomColor = "transparent";
-            }}
-          >
-            {l.label}
-          </a>
+      <div style={{ display: "flex", alignItems: "center", gap: 0 }} className="nav-links-desktop">
+        {NAV_LINKS.map(l => (
+          <a key={l.href} href={l.href} onClick={e => navClick(e, l.href)}
+            style={{ textDecoration: "none", color: "rgba(255,255,255,0.85)", fontSize: 10.5, fontWeight: 600, letterSpacing: "0.7px", textTransform: "uppercase", padding: "22px 13px", borderBottom: "2px solid transparent", whiteSpace: "nowrap", transition: "all 0.2s" }}
+            onMouseEnter={e => { (e.target as HTMLElement).style.color = "#60a5fa"; (e.target as HTMLElement).style.borderBottomColor = "#60a5fa"; }}
+            onMouseLeave={e => { (e.target as HTMLElement).style.color = "rgba(255,255,255,0.85)"; (e.target as HTMLElement).style.borderBottomColor = "transparent"; }}
+          >{l.label}</a>
         ))}
       </div>
 
-      <button
-        className="md:hidden"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        style={{ background: "none", border: "none", cursor: "pointer", padding: 8 }}
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-          {mobileOpen ? (
-            <path d="M18 6L6 18M6 6l12 12" />
-          ) : (
-            <path d="M3 12h18M3 6h18M3 18h18" />
-          )}
-        </svg>
-      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={onProposta}
+          style={{ background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", cursor: "pointer", whiteSpace: "nowrap", transition: "background 0.2s" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "#1d4ed8")}
+          onMouseLeave={e => (e.currentTarget.style.background = "#2563eb")}
+          className="btn-proposta-nav"
+        >
+          Solicitar Proposta
+        </button>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="btn-menu-mobile"
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 8, display: "none" }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+            {mobileOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M3 12h18M3 6h18M3 18h18" />}
+          </svg>
+        </button>
+      </div>
 
       {mobileOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 60,
-            left: 0,
-            right: 0,
-            background: "rgba(10,22,40,0.99)",
-            borderBottom: "1px solid rgba(37,99,235,0.3)",
-            padding: "8px 0",
-            zIndex: 998,
-          }}
-        >
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={(e) => handleNavClick(e, l.href)}
-              style={{
-                display: "block",
-                padding: "14px 24px",
-                color: "rgba(255,255,255,0.9)",
-                textDecoration: "none",
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "1px",
-                textTransform: "uppercase",
-                borderBottom: "1px solid rgba(37,99,235,0.1)",
-              }}
-            >
+        <div style={{ position: "fixed", top: 64, left: 0, right: 0, background: "rgba(10,22,40,0.99)", borderBottom: "1px solid rgba(37,99,235,0.2)", zIndex: 998, padding: "4px 0" }}>
+          {NAV_LINKS.map(l => (
+            <a key={l.href} href={l.href} onClick={e => navClick(e, l.href)}
+              style={{ display: "block", padding: "13px 24px", color: "rgba(255,255,255,0.88)", textDecoration: "none", fontSize: 12, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", borderBottom: "1px solid rgba(37,99,235,0.1)" }}>
               {l.label}
             </a>
           ))}
+          <div style={{ padding: "12px 24px" }}>
+            <button onClick={() => { onProposta(); setMobileOpen(false); }}
+              style={{ width: "100%", padding: "12px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: 1, cursor: "pointer", textTransform: "uppercase" }}>
+              Solicitar Proposta
+            </button>
+          </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 900px) {
+          .nav-links-desktop { display: none !important; }
+          .btn-proposta-nav { display: none !important; }
+          .btn-menu-mobile { display: flex !important; }
+        }
+      `}</style>
     </nav>
   );
 }
 
-function HeroSection() {
-  const stats = [
-    {
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-      ),
-      label: "Gestão Financeira",
-      value: "100% Digital",
-    },
-    {
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-      ),
-      label: "Compliance",
-      value: "Garantido",
-    },
-    {
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      ),
-      label: "Atendimento",
-      value: "Ágil e Humano",
-    },
-    {
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8">
-          <line x1="12" y1="1" x2="12" y2="23" />
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-      ),
-      label: "Redução de Custos",
-      value: "Comprovada",
-    },
-  ];
-
+/* ─────────────────────────────────────────── HERO ── */
+function HeroSection({ onProposta }: { onProposta: () => void }) {
   return (
-    <section
-      id="inicio"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #0a1628 0%, #0f2550 50%, #1a3a6e 100%)",
-        position: "relative",
-        overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        paddingTop: 60,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "linear-gradient(rgba(37,99,235,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.07) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: 600,
-          height: 600,
-          background: "radial-gradient(circle, rgba(37,99,235,0.25) 0%, transparent 70%)",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -60%)",
-          pointerEvents: "none",
-        }}
-      />
+    <section id="inicio" style={{ minHeight: "100vh", background: "#0a1628", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", paddingTop: 64 }}>
+      {/* Ambient glows only — no grid */}
+      <div style={{ position: "absolute", width: 800, height: 800, background: "radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 65%)", top: "-10%", right: "-10%", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", width: 500, height: 500, background: "radial-gradient(circle, rgba(96,165,250,0.1) 0%, transparent 65%)", bottom: "0%", left: "5%", pointerEvents: "none" }} />
+      {/* Subtle diagonal lines */}
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(135deg, rgba(37,99,235,0.04) 0px, rgba(37,99,235,0.04) 1px, transparent 1px, transparent 80px)", pointerEvents: "none" }} />
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "60px 40px",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 80,
-          alignItems: "center",
-          width: "100%",
-        }}
-        className="hero-content"
-      >
+      <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", padding: "80px 40px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center", width: "100%" }} className="hero-grid">
         <div>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "rgba(37,99,235,0.2)",
-              border: "1px solid rgba(37,99,235,0.4)",
-              borderRadius: 100,
-              padding: "6px 16px",
-              marginBottom: 28,
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                background: "#60a5fa",
-                borderRadius: "50%",
-                animation: "pulse 2s infinite",
-                display: "inline-block",
-              }}
-            />
-            <span
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                color: "#60a5fa",
-              }}
-            >
-              Contabilidade Inteligente
-            </span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.35)", borderRadius: 100, padding: "6px 16px", marginBottom: 32 }}>
+            <span style={{ width: 6, height: 6, background: "#60a5fa", borderRadius: "50%", display: "inline-block", animation: "heroPulse 2s infinite" }} />
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#60a5fa" }}>Contabilidade Inteligente</span>
           </div>
 
-          <h1
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "clamp(42px, 5vw, 68px)",
-              fontWeight: 900,
-              lineHeight: 1,
-              color: "#ffffff",
-              letterSpacing: -2,
-              marginBottom: 8,
-            }}
-          >
+          <h1 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: "clamp(40px, 5vw, 66px)", fontWeight: 900, lineHeight: 1.02, color: "#fff", letterSpacing: -2, marginBottom: 10 }}>
             AUTOMATTIZE
-            <br />
-            <span style={{ color: "#3b82f6" }}>CONTABILIDADE</span>
+            <br /><span style={{ color: "#3b82f6" }}>CONTABILIDADE</span>
           </h1>
-
-          <div
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: 3,
-              textTransform: "uppercase",
-              color: "#c8d8e8",
-              marginBottom: 28,
-            }}
-          >
-            Precisão. Estratégia. Resultado.
+          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 3.5, textTransform: "uppercase", color: "#5b7a9a", marginBottom: 28 }}>
+            Precisão · Estratégia · Resultado
           </div>
-
-          <div
-            style={{
-              width: 60,
-              height: 3,
-              background: "linear-gradient(90deg, #2563eb, #60a5fa)",
-              borderRadius: 2,
-              marginBottom: 24,
-            }}
-          />
-
-          <p
-            style={{
-              fontSize: 16,
-              lineHeight: 1.7,
-              color: "rgba(255,255,255,0.92)",
-              maxWidth: 480,
-              marginBottom: 36,
-            }}
-          >
-            Somos o escritório contábil que une{" "}
-            <strong style={{ color: "#60a5fa" }}>tecnologia de ponta</strong> à expertise
-            humana para transformar a gestão financeira do seu negócio — com BPO Financeiro
-            completo, conformidade fiscal garantida e suporte personalizado.
+          <div style={{ width: 48, height: 3, background: "linear-gradient(90deg,#2563eb,#60a5fa)", borderRadius: 2, marginBottom: 28 }} />
+          <p style={{ fontSize: 16, lineHeight: 1.75, color: "rgba(255,255,255,0.85)", maxWidth: 460, marginBottom: 40 }}>
+            Somos o escritório contábil que une <strong style={{ color: "#60a5fa" }}>tecnologia de ponta</strong> à expertise humana — com BPO Financeiro completo, conformidade fiscal garantida e suporte personalizado.
           </p>
-
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <a
-              href="#contato"
-              onClick={(e) => { e.preventDefault(); document.querySelector("#contato")?.scrollIntoView({ behavior: "smooth" }); }}
-              style={{
-                background: "#2563eb",
-                color: "white",
-                padding: "14px 28px",
-                borderRadius: 6,
-                textDecoration: "none",
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                transition: "all 0.2s",
-                display: "inline-block",
-              }}
-            >
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <button onClick={onProposta}
+              style={{ background: "#2563eb", color: "#fff", padding: "14px 30px", borderRadius: 8, fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", border: "none", cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#1d4ed8")}
+              onMouseLeave={e => (e.currentTarget.style.background = "#2563eb")}>
               Solicitar Proposta
-            </a>
-            <a
-              href="#servicos"
-              onClick={(e) => { e.preventDefault(); document.querySelector("#servicos")?.scrollIntoView({ behavior: "smooth" }); }}
-              style={{
-                background: "transparent",
-                color: "white",
-                padding: "14px 28px",
-                borderRadius: 6,
-                textDecoration: "none",
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                border: "1px solid rgba(255,255,255,0.3)",
-                transition: "all 0.2s",
-                display: "inline-block",
-              }}
-            >
+            </button>
+            <a href="#servicos" onClick={e => { e.preventDefault(); document.querySelector("#servicos")?.scrollIntoView({ behavior: "smooth" }); }}
+              style={{ background: "transparent", color: "#fff", padding: "14px 30px", borderRadius: 8, fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", border: "1px solid rgba(255,255,255,0.25)", cursor: "pointer", transition: "all 0.2s", textDecoration: "none" }}>
               Nossos Serviços
             </a>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }} className="hero-right-grid">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-            }}
-          >
-            {stats.map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 12,
-                  padding: 24,
-                  backdropFilter: "blur(10px)",
-                }}
-              >
-                <div style={{ marginBottom: 8 }}>{s.icon}</div>
-                <div
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: 1.5,
-                    textTransform: "uppercase",
-                    color: "#90a8c0",
-                    marginBottom: 6,
-                  }}
-                >
-                  {s.label}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }} className="hero-right">
+          <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", height: 240 }}>
+            <img src={`${BASE}dashboard.jpg`} alt="Dashboard" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(10,22,40,0.3) 0%, transparent 60%)" }} />
+            <div style={{ position: "absolute", bottom: 16, left: 16, right: 16, display: "flex", gap: 10 }}>
+              {[{ v: "100%", l: "Digital" }, { v: "24h", l: "Resposta" }, { v: "0%", l: "Surpresas" }].map((s, i) => (
+                <div key={i} style={{ flex: 1, background: "rgba(10,22,40,0.85)", backdropFilter: "blur(8px)", borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                  <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 20, fontWeight: 900, color: "#60a5fa", lineHeight: 1 }}>{s.v}</div>
+                  <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>{s.l}</div>
                 </div>
-                <div
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: 18,
-                    fontWeight: 800,
-                    color: "#ffffff",
-                  }}
-                >
-                  {s.value}
-                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            {[
+              { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, title: "Compliance Total", sub: "Segurança fiscal garantida" },
+              { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>, title: "Gestão em Tempo Real", sub: "Dashboards e relatórios" },
+              { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>, title: "Atendimento Ágil", sub: "Suporte humano sempre" },
+              { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.8"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>, title: "Redução de Custos", sub: "Até 60% vs. equipe interna" },
+            ].map((c, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "16px 18px" }}>
+                <div style={{ marginBottom: 8 }}>{c.icon}</div>
+                <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 3 }}>{c.title}</div>
+                <div style={{ fontSize: 11, color: "#64748b" }}>{c.sub}</div>
               </div>
             ))}
           </div>
-          <div
-            style={{
-              borderRadius: 12,
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.1)",
-              height: 200,
-            }}
-          >
-            <img
-              src={`${BASE}dashboard.jpg`}
-              alt="Dashboard contábil"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          </div>
         </div>
       </div>
-
       <style>{`
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-        @media (max-width: 900px) {
-          .hero-content { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .hero-right-grid { display: none !important; }
-        }
+        @keyframes heroPulse { 0%,100%{opacity:1}50%{opacity:.4} }
+        @media(max-width:900px){ .hero-grid{grid-template-columns:1fr!important;gap:32px!important} .hero-right{display:none!important} }
       `}</style>
     </section>
   );
 }
 
-function SectionLabel({ text }: { text: string }) {
+/* ─────────────────────────────────────────── HELPERS ── */
+function SectionLabel({ text, light = false }: { text: string; light?: boolean }) {
   return (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-      <div style={{ width: 32, height: 2, background: "#2563eb" }} />
-      <span
-        style={{
-          fontFamily: "'Montserrat', sans-serif",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          color: "#2563eb",
-        }}
-      >
-        {text}
-      </span>
+      <div style={{ width: 28, height: 2, background: light ? "#60a5fa" : "#2563eb", borderRadius: 2 }} />
+      <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: light ? "#60a5fa" : "#2563eb" }}>{text}</span>
     </div>
   );
 }
 
+/* ─────────────────────────────────────────── QUEM ATENDEMOS ── */
 function QuemAtendemos() {
   const features = [
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-      ),
-      title: "Organização Contábil e Financeira",
-      desc: "Clareza nos números, relatórios confiáveis e gestão profissional das finanças empresariais.",
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-      ),
-      title: "Segurança Fiscal e Trabalhista",
-      desc: "Compliance total, evitando multas, autuações e passivos ocultos nas operações.",
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-      ),
-      title: "Informações para Decisão Estratégica",
-      desc: "Dados gerenciais precisos e relatórios para tomada de decisão embasada.",
-    },
-    {
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-          <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><path d="M14 14h7v7h-7z" />
-        </svg>
-      ),
-      title: "Estrutura Financeira Profissional",
-      desc: "Implementação de processos e ferramentas para uma gestão financeira robusta e escalável.",
-    },
+    { icon: "→", title: "Organização Contábil e Financeira", desc: "Clareza nos números, relatórios confiáveis e gestão profissional das finanças empresariais." },
+    { icon: "→", title: "Segurança Fiscal e Trabalhista", desc: "Compliance total, evitando multas, autuações e passivos ocultos nas operações." },
+    { icon: "→", title: "Informações para Decisão Estratégica", desc: "Dados gerenciais precisos e relatórios para tomada de decisão embasada." },
+    { icon: "→", title: "Estrutura Financeira Profissional", desc: "Implementação de processos e ferramentas para uma gestão financeira robusta e escalável." },
   ];
-
   return (
-    <section
-      id="quem-atendemos"
-      style={{ background: "#ffffff", padding: "80px 40px" }}
-    >
+    <section id="quem-atendemos" style={{ background: "#fff", padding: "80px 40px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 60,
-            alignItems: "center",
-          }}
-          className="quem-grid"
-        >
-          <div style={{ borderRadius: 16, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,0.15)", position: "relative" }}>
-            <img
-              src={`${BASE}tablet.jpg`}
-              alt="Empresários com tablet"
-              style={{ width: "100%", height: 380, objectFit: "cover", display: "block" }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                bottom: 24,
-                left: 24,
-                background: "#2563eb",
-                color: "white",
-                borderRadius: 8,
-                padding: "12px 18px",
-              }}
-            >
-              <strong style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 16, fontWeight: 800, display: "block" }}>
-                MEIs e PMEs
-              </strong>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="quem-grid">
+          <div style={{ borderRadius: 16, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,0.12)", position: "relative" }}>
+            <img src={`${BASE}tablet.jpg`} alt="Tablet" style={{ width: "100%", height: 380, objectFit: "cover", display: "block" }} />
+            <div style={{ position: "absolute", bottom: 24, left: 24, background: "#2563eb", color: "#fff", borderRadius: 10, padding: "12px 20px" }}>
+              <strong style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 16, fontWeight: 800, display: "block" }}>MEIs e PMEs</strong>
               <span style={{ fontSize: 12, opacity: 0.8 }}>Nosso foco principal</span>
             </div>
           </div>
-
           <div>
             <SectionLabel text="Quem Atendemos" />
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 38,
-                fontWeight: 800,
-                lineHeight: 1.1,
-                color: "#0a1628",
-                marginBottom: 16,
-                letterSpacing: -1,
-              }}
-            >
-              Empresas que precisam de{" "}
-              <span style={{ color: "#2563eb" }}>mais do que um contador</span>
+            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 36, fontWeight: 800, lineHeight: 1.15, color: "#0a1628", marginBottom: 16, letterSpacing: -0.5 }}>
+              Empresas que precisam de <span style={{ color: "#2563eb" }}>mais do que um contador</span>
             </h2>
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: "#1e293b" }}>
-              Atendemos MEIs, microempresas, startups e PMEs que desejam profissionalizar sua gestão contábil e financeira, com um parceiro estratégico ao lado — não apenas um prestador de serviço.
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 32 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "#475569" }}>Atendemos MEIs, microempresas, startups e PMEs que desejam profissionalizar sua gestão contábil e financeira, com um parceiro estratégico ao lado.</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 28 }}>
               {features.map((f, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 16,
-                    padding: 20,
-                    borderRadius: 10,
-                    background: "#f8fafc",
-                    borderLeft: "3px solid #2563eb",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 40,
-                      height: 40,
-                      minWidth: 40,
-                      background: "#2563eb",
-                      borderRadius: 8,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {f.icon}
-                  </div>
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 18px", borderRadius: 10, background: "#f8fafc", borderLeft: "3px solid #2563eb" }}>
                   <div>
-                    <div
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: "#0a1628",
-                        marginBottom: 4,
-                        letterSpacing: "0.3px",
-                      }}
-                    >
-                      {f.title}
-                    </div>
-                    <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.5 }}>{f.desc}</div>
+                    <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 700, color: "#0a1628", marginBottom: 3 }}>{f.title}</div>
+                    <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>{f.desc}</div>
                   </div>
                 </div>
               ))}
@@ -653,465 +453,160 @@ function QuemAtendemos() {
           </div>
         </div>
       </div>
-      <style>{`
-        @media (max-width: 900px) { .quem-grid { grid-template-columns: 1fr !important; gap: 32px !important; } }
-      `}</style>
+      <style>{`@media(max-width:900px){.quem-grid{grid-template-columns:1fr!important;gap:32px!important}}`}</style>
     </section>
   );
 }
 
+/* ─────────────────────────────────────────── SERVIÇOS (redesigned) ── */
 function Servicos() {
-  const cards = [
+  const services = [
     {
+      num: "01",
       color: "#2563eb",
-      icon: (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8">
-          <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      ),
-      name: "Departamento",
-      title: "Contábil",
-      items: [
-        "Escrituração contábil (Diário, Razão, Balancetes)",
-        "Balanço Patrimonial e DRE",
-        "Demonstração de Fluxo de Caixa (DFC)",
-      ],
+      bg: "#eff6ff",
+      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>,
+      area: "Contábil",
+      tagline: "A base de tudo que você precisa saber sobre seu negócio",
+      items: ["Escrituração contábil completa", "Balanço Patrimonial e DRE", "Demonstração de Fluxo de Caixa"],
     },
     {
+      num: "02",
       color: "#7c3aed",
-      icon: (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
-        </svg>
-      ),
-      name: "Departamento",
-      title: "Fiscal",
-      items: [
-        "Apuração de Impostos e Tributos",
-        "Emissão e gestão de NF-e e NFS-e",
-        "Planejamento Tributário Estratégico",
-      ],
+      bg: "#f5f3ff",
+      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.6"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg>,
+      area: "Fiscal",
+      tagline: "Conformidade tributária com estratégia para pagar menos",
+      items: ["Apuração de impostos e tributos", "Emissão e gestão de NF-e / NFS-e", "Planejamento tributário estratégico"],
     },
     {
+      num: "03",
       color: "#059669",
-      icon: (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-      name: "Departamento",
-      title: "Pessoal – DP",
-      items: [
-        "Folha de Pagamento e Encargos (INSS, FGTS, IRRF)",
-        "Férias, 13º Salário e Rescisões",
-        "Registro de Funcionários e eSocial",
-      ],
+      bg: "#ecfdf5",
+      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /></svg>,
+      area: "Departamento Pessoal",
+      tagline: "Folha de pagamento sem erros e sem preocupações",
+      items: ["Folha de pagamento e encargos", "Férias, 13º salário e rescisões", "eSocial e admissões"],
     },
     {
-      color: "#dc2626",
-      icon: (
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-      ),
-      name: "Departamento",
-      title: "Societário",
-      items: [
-        "Abertura de Empresas (MEI, ME, LTDA)",
-        "Alterações Contratuais e Encerramento",
-        "Regularização Cadastral (CNPJ, Alvará)",
-      ],
+      num: "04",
+      color: "#ea580c",
+      bg: "#fff7ed",
+      icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="1.6"><rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" /><line x1="12" y1="12" x2="12" y2="16" /><line x1="10" y1="14" x2="14" y2="14" /></svg>,
+      area: "Societário",
+      tagline: "Da abertura ao crescimento, sua empresa regularizada",
+      items: ["Abertura de MEI, ME e LTDA", "Alterações e encerramento", "Regularização de CNPJ e Alvará"],
     },
   ];
 
   return (
     <section id="servicos" style={{ background: "#f8fafc", padding: "80px 40px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            marginBottom: 48,
-            flexWrap: "wrap",
-            gap: 24,
-          }}
-        >
-          <div>
-            <SectionLabel text="Nossos Serviços" />
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 38,
-                fontWeight: 800,
-                lineHeight: 1.1,
-                color: "#0a1628",
-                marginBottom: 16,
-                letterSpacing: -1,
-              }}
-            >
-              Departamentos de <span style={{ color: "#2563eb" }}>Atuação</span>
-            </h2>
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: "#1e293b", maxWidth: 580 }}>
-              Equipe especializada em cada área para garantir conformidade, organização e resultados reais para o seu negócio.
-            </p>
-          </div>
+        <div style={{ marginBottom: 56 }}>
+          <SectionLabel text="Nossos Serviços" />
+          <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 36, fontWeight: 800, color: "#0a1628", letterSpacing: -0.5, marginBottom: 12 }}>
+            Departamentos de <span style={{ color: "#2563eb" }}>Atuação</span>
+          </h2>
+          <p style={{ fontSize: 15, lineHeight: 1.7, color: "#475569", maxWidth: 560 }}>
+            Equipe especializada em cada área para garantir conformidade, organização e resultados reais para o seu negócio.
+          </p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 24,
-          }}
-          className="services-grid"
-        >
-          {cards.map((c, i) => (
-            <div
-              key={i}
-              style={{
-                background: "#ffffff",
-                borderRadius: 14,
-                padding: 28,
-                border: "1px solid #e2e8f0",
-                position: "relative",
-                overflow: "hidden",
-                transition: "all 0.25s",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 16px 40px rgba(0,0,0,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 3,
-                  background: c.color,
-                }}
-              />
-              <div style={{ marginBottom: 16 }}>{c.icon}</div>
-              <div
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                  color: "#475569",
-                  marginBottom: 6,
-                }}
-              >
-                {c.name}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }} className="serv-grid">
+          {services.map((s, i) => (
+            <div key={i}
+              style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1px solid #e2e8f0", transition: "all 0.25s", boxShadow: "0 2px 16px rgba(0,0,0,0.04)", display: "flex", flexDirection: "column" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 40px rgba(0,0,0,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 16px rgba(0,0,0,0.04)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+              {/* Top accent bar */}
+              <div style={{ height: 4, background: s.color }} />
+              <div style={{ padding: "24px 28px", display: "flex", gap: 20, alignItems: "flex-start" }}>
+                {/* Number */}
+                <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 42, fontWeight: 900, color: s.color, opacity: 0.12, lineHeight: 1, flexShrink: 0, userSelect: "none" }}>{s.num}</div>
+                <div style={{ flex: 1 }}>
+                  {/* Icon + Area */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <div style={{ width: 48, height: 48, background: s.bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{s.icon}</div>
+                    <div>
+                      <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "#94a3b8", marginBottom: 2 }}>Departamento</div>
+                      <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 17, fontWeight: 800, color: "#0a1628" }}>{s.area}</div>
+                    </div>
+                  </div>
+                  {/* Tagline */}
+                  <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5, marginBottom: 16, fontStyle: "italic" }}>{s.tagline}</p>
+                  {/* Items */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {s.items.map((item, j) => (
+                      <div key={j} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#334155" }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: 17,
-                  fontWeight: 700,
-                  color: "#0a1628",
-                  marginBottom: 16,
-                }}
-              >
-                {c.title}
-              </div>
-              <ul style={{ listStyle: "none" }}>
-                {c.items.map((item, j) => (
-                  <li
-                    key={j}
-                    style={{
-                      fontSize: 13,
-                      color: "#334155",
-                      padding: "5px 0 5px 16px",
-                      position: "relative",
-                      lineHeight: 1.4,
-                      borderBottom: j < c.items.length - 1 ? "1px solid #e2e8f0" : "none",
-                    }}
-                  >
-                    <span
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        color: c.color,
-                        fontSize: 11,
-                        top: 7,
-                        fontWeight: 700,
-                      }}
-                    >
-                      →
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
           ))}
         </div>
       </div>
-      <style>{`
-        @media (max-width: 900px) { .services-grid { grid-template-columns: 1fr !important; } }
-      `}</style>
+      <style>{`@media(max-width:700px){.serv-grid{grid-template-columns:1fr!important}}`}</style>
     </section>
   );
 }
 
+/* ─────────────────────────────────────────── BPO ── */
 function BPOSection() {
   const plans = [
-    {
-      tier: "Plano",
-      name: "Essencial",
-      items: [
-        "Conciliação bancária mensal",
-        "Controle de contas a pagar e receber",
-        "Relatório de fluxo de caixa básico",
-        "Suporte por e-mail e chat",
-      ],
-    },
-    {
-      tier: "Plano",
-      name: "Profissional",
-      featured: true,
-      badge: "Mais Popular",
-      items: [
-        "Tudo do Essencial",
-        "Gestão de cobranças e inadimplência",
-        "DRE gerencial mensal",
-        "Análise de indicadores financeiros",
-        "Reunião mensal de resultados",
-        "Suporte prioritário",
-      ],
-    },
-    {
-      tier: "Plano",
-      name: "Estratégico",
-      items: [
-        "Tudo do Profissional",
-        "Planejamento orçamentário anual",
-        "Projeções financeiras e cenários",
-        "Assessoria na captação de crédito",
-        "Controller financeiro dedicado",
-        "Suporte 24/7",
-      ],
-    },
+    { tier: "Plano", name: "Essencial", items: ["Conciliação bancária mensal", "Contas a pagar e receber", "Relatório de fluxo de caixa", "Suporte por e-mail e chat"] },
+    { tier: "Plano", name: "Profissional", featured: true, badge: "Mais Popular", items: ["Tudo do Essencial", "Gestão de cobranças", "DRE gerencial mensal", "Análise de indicadores", "Reunião mensal de resultados", "Suporte prioritário"] },
+    { tier: "Plano", name: "Estratégico", items: ["Tudo do Profissional", "Planejamento orçamentário", "Projeções e cenários", "Assessoria em crédito", "Controller dedicado", "Suporte 24/7"] },
   ];
-
-  const disclaimerItems = [
-    "Valores definidos conforme complexidade operacional",
-    "Análise personalizada antes de qualquer proposta",
-    "Sem taxas ocultas ou surpresas no contrato",
-  ];
-
   return (
-    <section
-      id="bpo"
-      style={{
-        background: "linear-gradient(135deg, #0a1628 0%, #0f2550 100%)",
-        padding: "80px 40px",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
+    <section id="bpo" style={{ background: "linear-gradient(135deg, #0a1628 0%, #0f2550 100%)", padding: "80px 40px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", width: 600, height: 600, background: "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 65%)", top: "-20%", right: "-5%", pointerEvents: "none" }} />
       <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 2 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 60,
-            alignItems: "center",
-            marginBottom: 60,
-          }}
-          className="bpo-intro"
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center", marginBottom: 60 }} className="bpo-intro">
           <div>
-            <SectionLabel text="BPO Financeiro" />
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 38,
-                fontWeight: 800,
-                lineHeight: 1.1,
-                color: "#ffffff",
-                marginBottom: 16,
-                letterSpacing: -1,
-              }}
-            >
+            <SectionLabel text="BPO Financeiro" light />
+            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 36, fontWeight: 800, color: "#fff", letterSpacing: -0.5, marginBottom: 16 }}>
               Terceirização <span style={{ color: "#3b82f6" }}>Financeira</span> Completa
             </h2>
-            <blockquote
-              style={{
-                fontSize: 18,
-                lineHeight: 1.7,
-                color: "rgba(255,255,255,0.95)",
-                borderLeft: "3px solid #3b82f6",
-                paddingLeft: 24,
-                margin: "24px 0",
-                fontStyle: "italic",
-              }}
-            >
+            <blockquote style={{ fontSize: 17, lineHeight: 1.7, color: "rgba(255,255,255,0.9)", borderLeft: "3px solid #3b82f6", paddingLeft: 24, margin: "24px 0", fontStyle: "italic" }}>
               "Você cuida do seu negócio. Nós cuidamos de toda a operação financeira — com rigor, transparência e tecnologia."
             </blockquote>
-            <div
-              style={{
-                background: "rgba(37,99,235,0.2)",
-                border: "1px solid rgba(37,99,235,0.4)",
-                borderRadius: 8,
-                padding: "14px 18px",
-                fontSize: 13,
-                color: "#bfdbfe",
-                lineHeight: 1.6,
-              }}
-            >
-              O BPO Financeiro (Business Process Outsourcing) é a terceirização completa do setor financeiro da sua empresa. Nossa equipe assume as rotinas financeiras, liberando você para focar no crescimento do negócio.
+            <div style={{ background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.35)", borderRadius: 10, padding: "14px 18px", fontSize: 13, color: "#93c5fd", lineHeight: 1.6 }}>
+              O BPO Financeiro é a terceirização completa do setor financeiro, liberando você para focar no crescimento do negócio com dados confiáveis em tempo real.
             </div>
           </div>
-
-          <div style={{ borderRadius: 14, overflow: "hidden" }}>
-            <img
-              src={`${BASE}paperwork.jpg`}
-              alt="BPO Financeiro"
-              style={{ width: "100%", height: 340, objectFit: "cover", display: "block" }}
-            />
+          <div style={{ borderRadius: 14, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
+            <img src={`${BASE}paperwork.jpg`} alt="BPO" style={{ width: "100%", height: 340, objectFit: "cover", display: "block" }} />
           </div>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 24,
-            marginBottom: 40,
-          }}
-          className="bpo-plans"
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginBottom: 32 }} className="bpo-plans">
           {plans.map((p, i) => (
-            <div
-              key={i}
-              style={{
-                background: p.featured ? "rgba(37,99,235,0.25)" : "rgba(255,255,255,0.05)",
-                border: p.featured ? "1px solid #2563eb" : "1px solid rgba(255,255,255,0.12)",
-                borderRadius: 14,
-                padding: 28,
-                position: "relative",
-                transition: "all 0.25s",
-              }}
-            >
-              {p.badge && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: -12,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    background: "#2563eb",
-                    color: "white",
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                    padding: "4px 14px",
-                    borderRadius: 100,
-                  }}
-                >
-                  {p.badge}
-                </div>
-              )}
-              <div
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  color: "#90a8c0",
-                  marginBottom: 8,
-                }}
-              >
-                {p.tier}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: 22,
-                  fontWeight: 800,
-                  color: "#ffffff",
-                  marginBottom: 20,
-                }}
-              >
-                {p.name}
-              </div>
-              <ul style={{ listStyle: "none" }}>
+            <div key={i} style={{ background: p.featured ? "rgba(37,99,235,0.2)" : "rgba(255,255,255,0.04)", border: `1px solid ${p.featured ? "#2563eb" : "rgba(255,255,255,0.1)"}`, borderRadius: 14, padding: 28, position: "relative", transition: "all 0.25s" }}>
+              {p.badge && <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "#2563eb", color: "#fff", fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", padding: "4px 14px", borderRadius: 100 }}>{p.badge}</div>}
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#64748b", marginBottom: 6 }}>{p.tier}</div>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 20 }}>{p.name}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                 {p.items.map((item, j) => (
-                  <li
-                    key={j}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 8,
-                      fontSize: 13,
-                      color: "rgba(255,255,255,0.92)",
-                      padding: "7px 0",
-                      borderBottom: j < p.items.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.5" style={{ flexShrink: 0, marginTop: 1 }}>
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                  <div key={j} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "rgba(255,255,255,0.88)", padding: "7px 0", borderBottom: j < p.items.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.5" style={{ flexShrink: 0, marginTop: 1 }}><polyline points="20 6 9 17 4 12" /></svg>
                     {item}
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           ))}
         </div>
 
-        <div
-          style={{
-            background: "rgba(30, 58, 138, 0.5)",
-            border: "1px solid rgba(96, 165, 250, 0.6)",
-            borderRadius: 10,
-            padding: "20px 24px",
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: 1,
-              color: "#ffffff",
-              textTransform: "uppercase",
-              marginBottom: 14,
-              display: "block",
-            }}
-          >
-            Transparência em Preços
-          </div>
-          <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
-            {disclaimerItems.map((item, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontSize: 13,
-                  color: "#ffffff",
-                  fontWeight: 600,
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
+        <div style={{ background: "rgba(30,58,138,0.5)", border: "1px solid rgba(96,165,250,0.5)", borderRadius: 10, padding: "18px 24px" }}>
+          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 800, color: "#fff", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>Transparência em Preços</div>
+          <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+            {["Valores conforme complexidade operacional", "Análise personalizada antes da proposta", "Sem taxas ocultas ou surpresas no contrato"].map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#fff", fontWeight: 500 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
                 {item}
               </div>
             ))}
@@ -1119,654 +614,266 @@ function BPOSection() {
         </div>
       </div>
       <style>{`
-        @media (max-width: 900px) {
-          .bpo-intro { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .bpo-plans { grid-template-columns: 1fr !important; }
-        }
+        @media(max-width:900px){.bpo-intro{grid-template-columns:1fr!important;gap:32px!important}.bpo-plans{grid-template-columns:1fr!important}}
       `}</style>
     </section>
   );
 }
 
-function Diferenciais() {
-  const diffs = [
+/* ─────────────────────────────────────────── JORNADA ── */
+function JornadaSection() {
+  const steps = [
     {
-      icon: (
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ),
-      title: "Atendimento Humanizado",
-      desc: "Você sempre terá um contador responsável pelo seu negócio — sem transferências infinitas ou respostas genéricas.",
+      side: "left",
+      tag: "ONBOARDING",
+      tagColor: "#2563eb",
+      title: "Seja Bem-Vindo!",
+      desc: "Todo novo cliente da Automattize passa por um processo de onboarding estruturado: call de ativação, orientações iniciais, mapeamento completo da situação contábil e fiscal da sua empresa e configuração das rotinas mensais conosco.",
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16.92z" /></svg>,
+      iconBg: "#2563eb",
+      stepLabel: "Primeiro Passo",
+      stepSub: "Iniciando sua jornada Automattize",
     },
     {
-      icon: (
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8">
-          <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      ),
-      title: "Tecnologia de Ponta",
-      desc: "Utilizamos softwares contábeis modernos e plataformas digitais para automatizar processos e entregar dados em tempo real.",
+      side: "right",
+      tag: "ATENDIMENTO",
+      tagColor: "#7c3aed",
+      title: "Operação Contínua!",
+      desc: "Sua empresa terá acesso a um contador responsável dedicado, canais de atendimento ágeis e suporte rápido dentro do horário comercial. Seu objetivo é garantir que todas as demandas contábeis, fiscais e trabalhistas sejam resolvidas com precisão e agilidade.",
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+      iconBg: "#7c3aed",
+      stepLabel: "Segundo Passo",
+      stepSub: "Atendimento especializado contínuo",
     },
     {
-      icon: (
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        </svg>
-      ),
-      title: "Compliance e Segurança",
-      desc: "Atuamos com máximo rigor legal e fiscal, garantindo que sua empresa esteja sempre em conformidade com as obrigações tributárias.",
-    },
-    {
-      icon: (
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8">
-          <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-      ),
-      title: "Redução de Custos",
-      desc: "Terceirizar sua contabilidade e financeiro reduz custos operacionais em até 60% comparado a uma equipe interna.",
-    },
-    {
-      icon: (
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-      ),
-      title: "Relatórios Gerenciais",
-      desc: "Dashboards e relatórios claros e objetivos para que você tome decisões estratégicas com dados confiáveis.",
-    },
-    {
-      icon: (
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-      ),
-      title: "Suporte Contínuo",
-      desc: "Canais de atendimento ágeis e equipe disponível para esclarecer dúvidas e resolver questões com rapidez.",
+      side: "left",
+      tag: "CUSTOMER SUCCESS",
+      tagColor: "#059669",
+      title: "Sua Experiência!",
+      desc: "Nosso time de sucesso do cliente avaliará constantemente sua satisfação e os resultados entregues. Reuniões periódicas, análise de indicadores e proatividade nas orientações estratégicas — porque queremos ser o parceiro que seu negócio precisa para crescer.",
+      icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
+      iconBg: "#059669",
+      stepLabel: "Terceiro Passo",
+      stepSub: "Crescimento e avaliação contínua",
     },
   ];
 
   return (
-    <section style={{ background: "#ffffff", padding: "80px 40px" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 16 }}>
-          <SectionLabel text="Diferenciais" />
+    <section id="jornada" style={{ background: "#f8fafc", padding: "80px 40px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <SectionLabel text="Jornada do Cliente" />
+          <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 36, fontWeight: 800, color: "#0a1628", letterSpacing: -0.5 }}>
+            Como será a sua Jornada<br />na <span style={{ color: "#2563eb" }}>Automattize</span>
+          </h2>
         </div>
-        <h2
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: 38,
-            fontWeight: 800,
-            lineHeight: 1.1,
-            color: "#0a1628",
-            marginBottom: 16,
-            letterSpacing: -1,
-            textAlign: "center",
-          }}
-        >
-          Por que escolher a <span style={{ color: "#2563eb" }}>Automattize?</span>
-        </h2>
-        <p
-          style={{
-            fontSize: 16,
-            lineHeight: 1.7,
-            color: "#1e293b",
-            maxWidth: 580,
-            textAlign: "center",
-            margin: "0 auto",
-          }}
-        >
-          Somos mais que um escritório contábil — somos o parceiro estratégico que seu negócio precisa para crescer com segurança e inteligência.
-        </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 24,
-            marginTop: 48,
-          }}
-          className="diffs-grid"
-        >
+        <div style={{ position: "relative" }}>
+          {/* Center line */}
+          <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 2, background: "linear-gradient(180deg,#2563eb,#7c3aed,#059669)", transform: "translateX(-50%)", opacity: 0.25 }} className="jornada-line" />
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {steps.map((step, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 60px 1fr", alignItems: "center", marginBottom: i < steps.length - 1 ? 0 : 0 }} className="jornada-row">
+                {/* Left content */}
+                <div style={{ padding: "24px 40px 24px 0", display: step.side === "left" ? "block" : "block", opacity: step.side === "left" ? 1 : 0, pointerEvents: step.side === "left" ? "auto" : "none" }}>
+                  {step.side === "left" && (
+                    <div style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 4px 24px rgba(0,0,0,0.07)", border: "1px solid #e2e8f0" }}>
+                      <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, color: step.tagColor, textTransform: "uppercase", marginBottom: 8 }}>{step.tag}</div>
+                      <h3 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 20, fontWeight: 800, color: "#0a1628", marginBottom: 12 }}>{step.title}</h3>
+                      <p style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.65 }}>{step.desc}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Center dot */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2, position: "relative" }}>
+                  <div style={{ width: 52, height: 52, borderRadius: "50%", background: step.iconBg, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 6px ${step.iconBg}25`, flexShrink: 0 }}>
+                    {step.icon}
+                  </div>
+                </div>
+
+                {/* Right content */}
+                <div style={{ padding: "24px 0 24px 40px" }}>
+                  {step.side === "right" ? (
+                    <div style={{ background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 4px 24px rgba(0,0,0,0.07)", border: "1px solid #e2e8f0" }}>
+                      <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 2, color: step.tagColor, textTransform: "uppercase", marginBottom: 8 }}>{step.tag}</div>
+                      <h3 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 20, fontWeight: 800, color: "#0a1628", marginBottom: 12 }}>{step.title}</h3>
+                      <p style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.65 }}>{step.desc}</p>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 700, color: "#0a1628" }}>{step.stepLabel}</div>
+                      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>{step.stepSub}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <style>{`
+        @media(max-width:700px){
+          .jornada-line{display:none}
+          .jornada-row{grid-template-columns:0 52px 1fr!important;gap:0 12px}
+        }
+      `}</style>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────── DIFERENCIAIS ── */
+function Diferenciais() {
+  const diffs = [
+    { color: "#2563eb", bg: "#eff6ff", icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>, title: "Atendimento Humanizado", desc: "Você sempre terá um contador responsável pelo seu negócio — sem transferências infinitas ou respostas genéricas." },
+    { color: "#7c3aed", bg: "#f5f3ff", icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>, title: "Tecnologia de Ponta", desc: "Softwares contábeis modernos e plataformas digitais para automatizar processos e entregar dados em tempo real." },
+    { color: "#059669", bg: "#ecfdf5", icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, title: "Compliance e Segurança", desc: "Máximo rigor legal e fiscal, garantindo que sua empresa esteja sempre em conformidade com as obrigações tributárias." },
+    { color: "#ea580c", bg: "#fff7ed", icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="1.8"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>, title: "Redução de Custos", desc: "Terceirizar sua contabilidade reduz custos operacionais em até 60% comparado a uma equipe interna." },
+    { color: "#0891b2", bg: "#ecfeff", icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0891b2" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>, title: "Relatórios Gerenciais", desc: "Dashboards e relatórios claros e objetivos para que você tome decisões estratégicas com dados confiáveis." },
+    { color: "#db2777", bg: "#fdf2f8", icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#db2777" strokeWidth="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>, title: "Suporte Contínuo", desc: "Canais de atendimento ágeis e equipe disponível para esclarecer dúvidas e resolver questões com rapidez." },
+  ];
+  return (
+    <section id="diferenciais" style={{ background: "#fff", padding: "80px 40px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 52 }}>
+          <SectionLabel text="Diferenciais" />
+          <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 36, fontWeight: 800, color: "#0a1628", letterSpacing: -0.5 }}>
+            Por que escolher a <span style={{ color: "#2563eb" }}>Automattize?</span>
+          </h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }} className="diffs-grid">
           {diffs.map((d, i) => (
-            <div
-              key={i}
-              style={{
-                background: "#ffffff",
-                borderRadius: 14,
-                padding: "32px 28px",
-                textAlign: "center",
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-                transition: "all 0.25s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 16px 40px rgba(0,0,0,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)";
-              }}
-            >
-              <div
-                style={{
-                  width: 60,
-                  height: 60,
-                  margin: "0 auto 18px",
-                  background: "linear-gradient(135deg, #eff6ff, #dbeafe)",
-                  borderRadius: 14,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {d.icon}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: "#0a1628",
-                  marginBottom: 10,
-                }}
-              >
-                {d.title}
-              </div>
-              <div style={{ fontSize: 13.5, color: "#334155", lineHeight: 1.6 }}>{d.desc}</div>
+            <div key={i} style={{ borderRadius: 14, padding: "28px 24px", border: "1px solid #e2e8f0", transition: "all 0.25s", background: "#fff" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 12px 40px rgba(0,0,0,0.09)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+              <div style={{ width: 52, height: 52, background: d.bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>{d.icon}</div>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 700, color: "#0a1628", marginBottom: 8 }}>{d.title}</div>
+              <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{d.desc}</div>
             </div>
           ))}
         </div>
       </div>
-      <style>{`
-        @media (max-width: 900px) { .diffs-grid { grid-template-columns: 1fr !important; } }
-      `}</style>
+      <style>{`@media(max-width:900px){.diffs-grid{grid-template-columns:1fr!important}}`}</style>
     </section>
   );
 }
 
+/* ─────────────────────────────────────────── CEO ── */
 function CEOSection() {
   return (
     <section id="ceo" style={{ background: "#0a1628", padding: "80px 40px", position: "relative", overflow: "hidden" }}>
-      <div
-        style={{
-          position: "absolute",
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: "50%",
-          opacity: 0.05,
-          background: `url(${BASE}broker.jpg) center/cover`,
-        }}
-      />
-      <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 2 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "auto 1fr",
-            gap: 60,
-            alignItems: "center",
-          }}
-          className="ceo-inner"
-        >
-          <div style={{ flexShrink: 0 }}>
-            <div
-              style={{
-                width: 280,
-                height: 340,
-                borderRadius: 16,
-                overflow: "hidden",
-                border: "4px solid rgba(37,99,235,0.4)",
-                boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
-              }}
-            >
-              <img
-                src={`${BASE}kelvin.jpg`}
-                alt="Kelvin - CEO Automattize"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-              />
+      <div style={{ position: "absolute", width: 600, height: 600, background: "radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 65%)", top: "-20%", left: "-10%", pointerEvents: "none" }} />
+      <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 2 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 60, alignItems: "center" }} className="ceo-grid">
+          <div>
+            <div style={{ width: 280, height: 340, borderRadius: 16, overflow: "hidden", border: "3px solid rgba(37,99,235,0.4)", boxShadow: "0 20px 60px rgba(0,0,0,0.45)" }}>
+              <img src={`${BASE}kelvin.jpg`} alt="Kelvin" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
             </div>
           </div>
-
           <div>
-            <SectionLabel text="Nossa Equipe" />
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: "clamp(30px, 4vw, 42px)",
-                fontWeight: 900,
-                color: "#ffffff",
-                letterSpacing: -1,
-                marginBottom: 4,
-              }}
-            >
-              Kelvin Souza
-            </h2>
-            <div
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                color: "#60a5fa",
-                marginBottom: 24,
-              }}
-            >
-              CEO & Contador Responsável
-            </div>
-            <blockquote
-              style={{
-                fontSize: 16,
-                lineHeight: 1.7,
-                color: "rgba(255,255,255,0.92)",
-                borderLeft: "3px solid #2563eb",
-                paddingLeft: 20,
-                marginBottom: 28,
-                maxWidth: 580,
-              }}
-            >
-              "Fundei a Automattize com uma convicção: toda empresa, independente do tamanho, merece uma contabilidade estratégica, transparente e que realmente contribua para o crescimento do negócio. Nossa missão é ser o parceiro financeiro que os empresários sempre quiseram ter."
+            <SectionLabel text="Nossa Equipe" light />
+            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: "clamp(28px,4vw,40px)", fontWeight: 900, color: "#fff", letterSpacing: -1, marginBottom: 4 }}>Kelvin Souza</h2>
+            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", color: "#60a5fa", marginBottom: 24 }}>CEO & Contador Responsável</div>
+            <blockquote style={{ fontSize: 15, lineHeight: 1.75, color: "rgba(255,255,255,0.88)", borderLeft: "3px solid #2563eb", paddingLeft: 20, marginBottom: 28, maxWidth: 540 }}>
+              "Fundei a Automattize com uma convicção: toda empresa merece uma contabilidade estratégica, transparente e que realmente contribua para o crescimento do negócio. Nossa missão é ser o parceiro financeiro que os empresários sempre quiseram ter."
             </blockquote>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 16,
-              }}
-              className="ceo-creds"
-            >
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="ceo-creds">
               {[
-                { label: "Formação", value: "Ciências Contábeis + Especialização em Gestão Financeira" },
-                { label: "Expertise", value: "BPO Financeiro, Planejamento Tributário e Abertura de Empresas" },
-                { label: "Atuação", value: "MEIs, Microempresas, Startups e PMEs em todo o Brasil" },
-                { label: "Filosofia", value: "Contabilidade como ferramenta estratégica de crescimento" },
+                { l: "Formação", v: "Ciências Contábeis + Esp. em Gestão Financeira" },
+                { l: "Expertise", v: "BPO Financeiro, Tributário e Abertura de Empresas" },
+                { l: "Atuação", v: "MEIs, Startups e PMEs em todo o Brasil" },
+                { l: "Filosofia", v: "Contabilidade como ferramenta estratégica de crescimento" },
               ].map((c, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    padding: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      textTransform: "uppercase",
-                      color: "#90a8c0",
-                      marginBottom: 6,
-                    }}
-                  >
-                    {c.label}
-                  </div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.95)", lineHeight: 1.5 }}>{c.value}</div>
+                <div key={i} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, padding: 16 }}>
+                  <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 9.5, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "#64748b", marginBottom: 6 }}>{c.l}</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.88)", lineHeight: 1.5 }}>{c.v}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </div>
-      <style>{`
-        @media (max-width: 900px) {
-          .ceo-inner { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .ceo-creds { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+      <style>{`@media(max-width:900px){.ceo-grid{grid-template-columns:1fr!important;gap:32px!important}.ceo-creds{grid-template-columns:1fr!important}}`}</style>
     </section>
   );
 }
 
-function Contato() {
-  const [formData, setFormData] = useState({
-    nome: "",
-    email: "",
-    empresa: "",
-    faturamento: "",
-    funcionarios: "",
-    servicos: [] as string[],
-    mensagem: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-
-  const servicoOptions = ["Departamento Contábil", "Departamento Fiscal", "Departamento Pessoal (DP)", "Departamento Societário", "BPO Financeiro"];
-
-  const toggleServico = (s: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      servicos: prev.servicos.includes(s) ? prev.servicos.filter((x) => x !== s) : [...prev.servicos, s],
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
-
+/* ─────────────────────────────────────────── CONTATO ── */
+function Contato({ onProposta }: { onProposta: () => void }) {
   return (
     <section id="contato" style={{ background: "#f8fafc", padding: "80px 40px" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 60,
-            alignItems: "start",
-          }}
-          className="contact-grid"
-        >
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60, alignItems: "center" }} className="contato-grid">
           <div>
             <SectionLabel text="Contato" />
-            <h2
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: 38,
-                fontWeight: 800,
-                lineHeight: 1.1,
-                color: "#0a1628",
-                marginBottom: 16,
-                letterSpacing: -1,
-              }}
-            >
+            <h2 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 36, fontWeight: 800, color: "#0a1628", letterSpacing: -0.5, marginBottom: 16 }}>
               Vamos <span style={{ color: "#2563eb" }}>Conversar?</span>
             </h2>
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: "#1e293b" }}>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: "#475569", marginBottom: 32 }}>
               Entre em contato e descubra como a Automattize pode transformar a gestão contábil e financeira da sua empresa.
             </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 32 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
               {[
-                {
-                  icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16.92z" />
-                    </svg>
-                  ),
-                  label: "WhatsApp / Telefone",
-                  value: "(11) 99999-9999",
-                },
-                {
-                  icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
-                    </svg>
-                  ),
-                  label: "E-mail",
-                  value: "contato@automattize.com.br",
-                },
-                {
-                  icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-                    </svg>
-                  ),
-                  label: "Horário de Atendimento",
-                  value: "Seg. a Sex.: 8h às 18h",
-                },
+                { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16.92z" /></svg>, l: "WhatsApp / Telefone", v: "(11) 99999-9999" },
+                { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>, l: "E-mail", v: "contato@automattize.com.br" },
+                { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>, l: "Horário", v: "Seg. a Sex.: 8h às 18h" },
               ].map((c, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 16,
-                    padding: 20,
-                    background: "#ffffff",
-                    borderRadius: 10,
-                    borderLeft: "3px solid #2563eb",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      minWidth: 44,
-                      background: "#2563eb",
-                      borderRadius: 8,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {c.icon}
-                  </div>
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 20px", background: "#fff", borderRadius: 10, borderLeft: "3px solid #2563eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                  <div style={{ width: 42, height: 42, minWidth: 42, background: "#2563eb", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>{c.icon}</div>
                   <div>
-                    <div
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: 1.5,
-                        textTransform: "uppercase",
-                        color: "#475569",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {c.label}
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: "#0a1628" }}>{c.value}</div>
+                    <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "#94a3b8", marginBottom: 3 }}>{c.l}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#0a1628" }}>{c.v}</div>
                   </div>
                 </div>
               ))}
             </div>
-
-            <div
-              style={{
-                marginTop: 24,
-                padding: "16px 20px",
-                background: "#eff6ff",
-                borderRadius: 10,
-                border: "1px solid #bfdbfe",
-                fontSize: 13,
-                color: "#1e3a8a",
-                lineHeight: 1.6,
-                fontWeight: 500,
-              }}
-            >
+            <div style={{ background: "#eff6ff", borderRadius: 12, border: "1px solid #bfdbfe", padding: "18px 20px", fontSize: 13, color: "#1e40af", lineHeight: 1.6 }}>
               <strong>Primeira consulta gratuita.</strong> Agende uma reunião e descubra, sem compromisso, como podemos ajudar sua empresa a crescer com mais organização e segurança financeira.
             </div>
           </div>
-
-          <div
-            style={{
-              background: "#ffffff",
-              borderRadius: 16,
-              border: "1px solid #e2e8f0",
-              boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
-              padding: 36,
-            }}
-          >
-            {submitted ? (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <div style={{ marginBottom: 16 }}>
-                  <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.5" style={{ margin: "0 auto" }}>
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                </div>
-                <h3 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 22, fontWeight: 800, color: "#0a1628", marginBottom: 12 }}>
-                  Mensagem Enviada!
-                </h3>
-                <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6 }}>
-                  Obrigado pelo contato. Nossa equipe retornará em até 24 horas úteis.
-                </p>
+          <div>
+            <div style={{ background: "#0a1628", borderRadius: 20, padding: 40, textAlign: "center", boxShadow: "0 20px 60px rgba(10,22,40,0.2)" }}>
+              <div style={{ marginBottom: 20 }}>
+                <Logo size={48} />
               </div>
-            ) : (
-              <>
-                <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 18, fontWeight: 800, color: "#0a1628", marginBottom: 4 }}>
-                  Solicite uma Proposta
-                </div>
-                <div style={{ fontSize: 13, color: "#475569", marginBottom: 28 }}>
-                  Preencha o formulário e entraremos em contato em até 24 horas.
-                </div>
-                <form onSubmit={handleSubmit}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }} className="form-row">
-                    {[
-                      { key: "nome", label: "Nome Completo", type: "text", placeholder: "Seu nome" },
-                      { key: "email", label: "E-mail", type: "email", placeholder: "seu@email.com" },
-                    ].map((f) => (
-                      <div key={f.key}>
-                        <label style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#1e293b", display: "block", marginBottom: 6 }}>
-                          {f.label}
-                        </label>
-                        <input
-                          type={f.type}
-                          placeholder={f.placeholder}
-                          value={(formData as Record<string, string>)[f.key]}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                          style={{ width: "100%", padding: "11px 14px", border: "1.5px solid #e2e8f0", borderRadius: 7, fontSize: 14, color: "#1e293b", fontFamily: "inherit", outline: "none", transition: "border-color 0.2s" }}
-                          required
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#1e293b", display: "block", marginBottom: 6 }}>
-                      Nome da Empresa
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Sua empresa"
-                      value={formData.empresa}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, empresa: e.target.value }))}
-                      style={{ width: "100%", padding: "11px 14px", border: "1.5px solid #e2e8f0", borderRadius: 7, fontSize: 14, color: "#1e293b", fontFamily: "inherit", outline: "none" }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#1e293b", display: "block", marginBottom: 8 }}>
-                      Serviços de Interesse
-                    </label>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      {servicoOptions.map((s) => (
-                        <label
-                          key={s}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            cursor: "pointer",
-                            padding: "8px 12px",
-                            border: formData.servicos.includes(s) ? "1.5px solid #2563eb" : "1.5px solid #e2e8f0",
-                            borderRadius: 7,
-                            background: formData.servicos.includes(s) ? "#eff6ff" : "transparent",
-                            transition: "all 0.2s",
-                            fontSize: 13,
-                            color: "#1e293b",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={formData.servicos.includes(s)}
-                            onChange={() => toggleServico(s)}
-                            style={{ display: "none" }}
-                          />
-                          <div
-                            style={{
-                              width: 16,
-                              height: 16,
-                              border: formData.servicos.includes(s) ? "2px solid #2563eb" : "2px solid #e2e8f0",
-                              borderRadius: 4,
-                              background: formData.servicos.includes(s) ? "#2563eb" : "white",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                              fontSize: 10,
-                              color: "white",
-                            }}
-                          >
-                            {formData.servicos.includes(s) && "✓"}
-                          </div>
-                          {s}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#1e293b", display: "block", marginBottom: 6 }}>
-                      Mensagem (opcional)
-                    </label>
-                    <textarea
-                      placeholder="Conte-nos sobre seu negócio e suas necessidades..."
-                      value={formData.mensagem}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, mensagem: e.target.value }))}
-                      rows={3}
-                      style={{ width: "100%", padding: "11px 14px", border: "1.5px solid #e2e8f0", borderRadius: 7, fontSize: 14, color: "#1e293b", fontFamily: "inherit", resize: "vertical", outline: "none" }}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    style={{
-                      width: "100%",
-                      padding: 14,
-                      background: "#2563eb",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 7,
-                      cursor: "pointer",
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      textTransform: "uppercase",
-                      marginTop: 8,
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    Enviar Solicitação
-                  </button>
-                </form>
-              </>
-            )}
+              <h3 style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 20, fontWeight: 800, color: "#fff", marginBottom: 12 }}>
+                Pronto para transformar<br />sua gestão?
+              </h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, marginBottom: 28 }}>
+                Solicite uma proposta personalizada e receba em até 24 horas úteis com os valores e serviços ideais para o seu negócio.
+              </p>
+              <button onClick={onProposta}
+                style={{ width: "100%", padding: "16px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 10, fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer", transition: "all 0.2s", marginBottom: 12 }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#1d4ed8")}
+                onMouseLeave={e => (e.currentTarget.style.background = "#2563eb")}>
+                Solicitar Proposta Agora →
+              </button>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Sem compromisso · Resposta em 24h</p>
+            </div>
           </div>
         </div>
       </div>
-      <style>{`
-        @media (max-width: 900px) {
-          .contact-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .form-row { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+      <style>{`@media(max-width:900px){.contato-grid{grid-template-columns:1fr!important;gap:32px!important}}`}</style>
     </section>
   );
 }
 
+/* ─────────────────────────────────────────── FOOTER ── */
 function Footer() {
   return (
-    <footer
-      style={{
-        background: "#050d1a",
-        padding: 40,
-        textAlign: "center",
-        borderTop: "1px solid rgba(37,99,235,0.3)",
-      }}
-    >
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <Logo size={40} />
-        </div>
-      </div>
-      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
-        Contabilidade estratégica para empresas que querem crescer com segurança.
-      </p>
-      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 12 }}>
-        © {new Date().getFullYear()} Automattize Contabilidade. Todos os direitos reservados.
-      </p>
+    <footer style={{ background: "#050d1a", padding: "40px 40px", borderTop: "1px solid rgba(37,99,235,0.25)", textAlign: "center" }}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><Logo size={38} /></div>
+      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>Contabilidade estratégica para empresas que querem crescer com segurança.</p>
+      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>© {new Date().getFullYear()} Automattize Contabilidade. Todos os direitos reservados.</p>
     </footer>
   );
 }
 
+/* ─────────────────────────────────────────── ROOT ── */
 export default function Home() {
+  const [propostaOpen, setPropostaOpen] = useState(false);
+
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -1777,14 +884,16 @@ export default function Home() {
 
   return (
     <>
-      <NavBar />
-      <HeroSection />
+      <PropostaDrawer open={propostaOpen} onClose={() => setPropostaOpen(false)} />
+      <NavBar onProposta={() => setPropostaOpen(true)} />
+      <HeroSection onProposta={() => setPropostaOpen(true)} />
       <QuemAtendemos />
       <Servicos />
       <BPOSection />
+      <JornadaSection />
       <Diferenciais />
       <CEOSection />
-      <Contato />
+      <Contato onProposta={() => setPropostaOpen(true)} />
       <Footer />
     </>
   );
