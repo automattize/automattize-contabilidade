@@ -352,10 +352,8 @@ function PropostaDrawer({
                   style={{ display: "flex", flexDirection: "column", gap: 8 }}
                 >
                   {[
-                    "Contabilidade",
+                    "Contabilidade (Contábil)",
                     "BPO Financeiro",
-                    "Departamento Pessoal (Folha)",
-                    "Planejamento Tributário",
                     "Abertura de Empresa",
                     "Alterações ou Baixas de Empresa",
                   ].map((s) => (
