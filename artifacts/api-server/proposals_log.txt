@@ -1,0 +1,14 @@
+════════════════════════════════════════════════════════════
+  NOVA PROPOSTA — AUTOMATTIZE CONTABILIDADE
+  Recebida em: 16/03/2026, 23:30:36
+════════════════════════════════════════════════════════════
+  Nome do Sócio / Solicitante : Teste Silva
+  E-mail                      : teste@teste.com
+  CNPJ                        : 12.345.678/0001-90
+────────────────────────────────────────────────────────────
+  Serviços de Interesse       : Contabilidade, BPO Financeiro
+  Regime Tributário           : Simples
+  Faturamento Mensal (Média)  : R$ 50.000
+  Movimentação Financeira     : Média
+  Data da Solicitação         : 2026-03-17
+════════════════════════════════════════════════════════════
