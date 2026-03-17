@@ -352,7 +352,7 @@ function PropostaDrawer({
                   style={{ display: "flex", flexDirection: "column", gap: 8 }}
                 >
                   {[
-                    "Contabilidade (Contábil)",
+                    "Contabilidade (Contábil, Fiscal e Pessoal)",
                     "BPO Financeiro",
                     "Abertura de Empresa",
                     "Alterações ou Baixas de Empresa",
