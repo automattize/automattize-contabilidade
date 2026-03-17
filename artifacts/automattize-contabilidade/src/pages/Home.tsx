@@ -123,11 +123,17 @@ function PropostaDrawer({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error || "Erro ao enviar.");
+        throw new Error(
+          (data as { error?: string }).error || "Erro ao enviar.",
+        );
       }
       setDone(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocorreu um erro. Tente novamente.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Ocorreu um erro. Tente novamente.",
+      );
     } finally {
       setSending(false);
     }
@@ -289,12 +295,46 @@ function PropostaDrawer({
               >
                 Proposta Enviada com Sucesso!
               </div>
-              <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 6 }}>
-                Recebemos sua solicitação. Nossa equipe entrará em contato em até <strong>24 horas úteis</strong> com uma proposta personalizada para o seu negócio.
+              <p
+                style={{
+                  fontSize: 14,
+                  color: "#475569",
+                  lineHeight: 1.6,
+                  marginBottom: 6,
+                }}
+              >
+                Recebemos sua solicitação. Nossa equipe entrará em contato em
+                até <strong>24 horas úteis</strong> com uma proposta
+                personalizada para o seu negócio.
               </p>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#ecfdf5", border: "1px solid #bbf7d0", borderRadius: 8, padding: "8px 14px", marginTop: 4, marginBottom: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                <span style={{ fontSize: 12, color: "#059669", fontWeight: 600 }}>Dados salvos com sucesso</span>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#ecfdf5",
+                  border: "1px solid #bbf7d0",
+                  borderRadius: 8,
+                  padding: "8px 14px",
+                  marginTop: 4,
+                  marginBottom: 8,
+                }}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#059669"
+                  strokeWidth="2.5"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span
+                  style={{ fontSize: 12, color: "#059669", fontWeight: 600 }}
+                >
+                  Dados salvos com sucesso
+                </span>
               </div>
               <button
                 onClick={() => {
@@ -328,7 +368,8 @@ function PropostaDrawer({
               style={{ display: "flex", flexDirection: "column", gap: 18 }}
             >
               <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: -6 }}>
-                <span style={{ color: "#dc2626", fontWeight: 700 }}>*</span> Campos obrigatórios
+                <span style={{ color: "#dc2626", fontWeight: 700 }}>*</span>{" "}
+                Campos obrigatórios
               </p>
               {/* Data */}
               <div>
@@ -347,7 +388,15 @@ function PropostaDrawer({
 
               {/* Serviços */}
               <div>
-                <label style={labelStyle}><span style={{ color: "#dc2626" }}>*</span> Serviços de Interesse <span style={{ color: "#94a3b8", fontWeight: 400, fontSize: 9 }}>(selecione um ou mais)</span></label>
+                <label style={labelStyle}>
+                  <span style={{ color: "#dc2626" }}>*</span> Serviços de
+                  Interesse{" "}
+                  <span
+                    style={{ color: "#94a3b8", fontWeight: 400, fontSize: 9 }}
+                  >
+                    (selecione um ou mais)
+                  </span>
+                </label>
                 <div
                   style={{ display: "flex", flexDirection: "column", gap: 8 }}
                 >
@@ -416,7 +465,10 @@ function PropostaDrawer({
 
               {/* Nome */}
               <div>
-                <label style={labelStyle}><span style={{ color: "#dc2626" }}>*</span> Nome do Sócio / Solicitante</label>
+                <label style={labelStyle}>
+                  <span style={{ color: "#dc2626" }}>*</span> Nome do Sócio /
+                  Solicitante
+                </label>
                 <input
                   type="text"
                   placeholder="Nome completo"
@@ -431,7 +483,9 @@ function PropostaDrawer({
 
               {/* Email */}
               <div>
-                <label style={labelStyle}><span style={{ color: "#dc2626" }}>*</span> E-mail</label>
+                <label style={labelStyle}>
+                  <span style={{ color: "#dc2626" }}>*</span> E-mail
+                </label>
                 <input
                   type="email"
                   placeholder="seu@email.com"
@@ -1794,7 +1848,7 @@ function BPOSection() {
                 borderLeft: "3px solid #3b82f6",
                 paddingLeft: 24,
                 margin: "24px 0",
-                fontStyle: "italic",
+                fontStyle: "Montserrat',sans-serif",
               }}
             >
               Transforme a{" "}
@@ -2107,7 +2161,7 @@ function JornadaSection() {
           >
             Fluxo de Jornada
             <br />
-            na <span style={{ color: "#2563eb" }}>Automattize</span>
+            na <span style={{ color: "#2563eb" }}>AUTOMATTIZE</span>
           </h2>
         </div>
 
@@ -2436,7 +2490,7 @@ function Diferenciais() {
             }}
           >
             Por que escolher a{" "}
-            <span style={{ color: "#2563eb" }}>Automattize?</span>
+            <span style={{ color: "#2563eb" }}>AUTOMATTIZE?</span>
           </h2>
         </div>
         <div
@@ -2732,7 +2786,14 @@ function Contato({ onProposta }: { onProposta: () => void }) {
               {[
                 {
                   icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#fff"
+                      strokeWidth="2"
+                    >
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 16.92z" />
                     </svg>
                   ),
@@ -2744,7 +2805,14 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                 },
                 {
                   icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#fff"
+                      strokeWidth="2"
+                    >
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                       <polyline points="22,6 12,13 2,6" />
                     </svg>
@@ -2757,7 +2825,14 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                 },
                 {
                   icon: (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#fff"
+                      strokeWidth="2"
+                    >
                       <circle cx="12" cy="12" r="10" />
                       <polyline points="12 6 12 12 16 14" />
                     </svg>
@@ -2769,23 +2844,106 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                   badgeColor: null,
                 },
               ].map((c, i) => (
-                <div key={i}
-                  style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 20px", background: "#fff", borderRadius: 10, borderLeft: "3px solid #2563eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)", textDecoration: "none", cursor: c.href ? "pointer" : "default", transition: "all 0.2s" }}
-                  onClick={c.href ? () => window.open(c.href!, "_blank", "noopener,noreferrer") : undefined}
-                  onMouseEnter={c.href ? (e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 24px rgba(37,99,235,0.15)"; (e.currentTarget as HTMLElement).style.borderLeftColor = c.badgeColor || "#2563eb"; } : undefined}
-                  onMouseLeave={c.href ? (e) => { (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; (e.currentTarget as HTMLElement).style.borderLeftColor = "#2563eb"; } : undefined}
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    padding: "18px 20px",
+                    background: "#fff",
+                    borderRadius: 10,
+                    borderLeft: "3px solid #2563eb",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                    textDecoration: "none",
+                    cursor: c.href ? "pointer" : "default",
+                    transition: "all 0.2s",
+                  }}
+                  onClick={
+                    c.href
+                      ? () =>
+                          window.open(c.href!, "_blank", "noopener,noreferrer")
+                      : undefined
+                  }
+                  onMouseEnter={
+                    c.href
+                      ? (e) => {
+                          (e.currentTarget as HTMLElement).style.boxShadow =
+                            "0 6px 24px rgba(37,99,235,0.15)";
+                          (
+                            e.currentTarget as HTMLElement
+                          ).style.borderLeftColor = c.badgeColor || "#2563eb";
+                        }
+                      : undefined
+                  }
+                  onMouseLeave={
+                    c.href
+                      ? (e) => {
+                          (e.currentTarget as HTMLElement).style.boxShadow =
+                            "0 2px 8px rgba(0,0,0,0.04)";
+                          (
+                            e.currentTarget as HTMLElement
+                          ).style.borderLeftColor = "#2563eb";
+                        }
+                      : undefined
+                  }
                 >
-                  <div style={{ width: 42, height: 42, minWidth: 42, background: c.href ? (c.badgeColor || "#2563eb") : "#2563eb", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div
+                    style={{
+                      width: 42,
+                      height: 42,
+                      minWidth: 42,
+                      background: c.href
+                        ? c.badgeColor || "#2563eb"
+                        : "#2563eb",
+                      borderRadius: 8,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     {c.icon}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "#94a3b8", marginBottom: 3 }}>
+                    <div
+                      style={{
+                        fontFamily: "'Montserrat',sans-serif",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: 1.5,
+                        textTransform: "uppercase",
+                        color: "#94a3b8",
+                        marginBottom: 3,
+                      }}
+                    >
                       {c.l}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#0a1628" }}>{c.v}</div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "#0a1628",
+                      }}
+                    >
+                      {c.v}
+                    </div>
                   </div>
                   {c.badge && (
-                    <div style={{ flexShrink: 0, background: c.badgeColor + "18", border: `1px solid ${c.badgeColor}40`, borderRadius: 100, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: c.badgeColor, fontFamily: "'Montserrat',sans-serif", letterSpacing: 0.5, whiteSpace: "nowrap" }}>
+                    <div
+                      style={{
+                        flexShrink: 0,
+                        background: c.badgeColor + "18",
+                        border: `1px solid ${c.badgeColor}40`,
+                        borderRadius: 100,
+                        padding: "3px 10px",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: c.badgeColor,
+                        fontFamily: "'Montserrat',sans-serif",
+                        letterSpacing: 0.5,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {c.badge}
                     </div>
                   )}
@@ -2948,6 +3106,43 @@ export default function Home() {
       <CEOSection />
       <Contato onProposta={() => setPropostaOpen(true)} />
       <Footer />
+
+      {/* Floating WhatsApp Button */}
+      <a
+        href="https://wa.me/5561986721196?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade."
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Fale conosco pelo WhatsApp"
+        style={{
+          position: "fixed",
+          bottom: 28,
+          right: 28,
+          zIndex: 1050,
+          width: 60,
+          height: 60,
+          borderRadius: "50%",
+          background: "#25d366",
+          boxShadow: "0 4px 20px rgba(37,211,102,0.45)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textDecoration: "none",
+          transition: "transform 0.2s, box-shadow 0.2s",
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLElement).style.transform = "scale(1.12)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px rgba(37,211,102,0.6)";
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px rgba(37,211,102,0.45)";
+        }}
+      >
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M16 2C8.268 2 2 8.268 2 16c0 2.427.65 4.7 1.785 6.664L2 30l7.53-1.762A13.94 13.94 0 0 0 16 30c7.732 0 14-6.268 14-14S23.732 2 16 2z" fill="#fff"/>
+          <path fillRule="evenodd" clipRule="evenodd" d="M16 4.5C9.596 4.5 4.5 9.596 4.5 16c0 2.21.63 4.272 1.72 6.01l.29.467-1.17 4.273 4.388-1.147.452.268A11.46 11.46 0 0 0 16 27.5c6.404 0 11.5-5.096 11.5-11.5S22.404 4.5 16 4.5zm-3.48 6.25c-.22-.496-.453-.507-.663-.515-.172-.007-.368-.007-.564-.007s-.515.074-.785.368c-.27.294-1.03 1.006-1.03 2.454s1.054 2.846 1.201 3.042c.148.196 2.034 3.24 5.01 4.415 2.479.978 2.977.784 3.514.735.537-.049 1.73-.707 1.975-1.39.245-.685.245-1.273.171-1.396-.073-.122-.269-.196-.563-.343-.294-.147-1.73-.854-1.998-.95-.269-.098-.465-.147-.66.147-.196.294-.758.95-.93 1.147-.17.196-.342.22-.636.073-.294-.147-1.24-.457-2.362-1.457-.874-.778-1.463-1.74-1.635-2.034-.171-.294-.018-.453.129-.6.132-.131.294-.343.44-.514.148-.172.197-.294.296-.49.098-.196.049-.368-.025-.515-.073-.147-.648-1.6-.9-2.167z" fill="#25d366"/>
+        </svg>
+      </a>
     </>
   );
 }
