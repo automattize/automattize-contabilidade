@@ -62,6 +62,7 @@ function PropostaDrawer({
     email: "",
     cnpj: "",
     faturamento: "",
+    funcionarios: "",
   });
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
@@ -118,6 +119,7 @@ function PropostaDrawer({
           cnpj: form.cnpj || null,
           regimeTributario: regime || null,
           faturamentoMensal: form.faturamento || null,
+          funcionarios: form.funcionarios ? Number(form.funcionarios) : null,
           movimentacaoFinanceira: movimentacao || null,
         }),
       });
@@ -505,10 +507,17 @@ function PropostaDrawer({
                   type="text"
                   placeholder="00.000.000/0000-00"
                   value={form.cnpj}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, cnpj: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    let v = e.target.value.replace(/\D/g, "");
+                    if (v.length > 14) v = v.slice(0, 14);
+                    v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+                    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+                    v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+                    v = v.replace(/(\d{4})(\d)/, "$1-$2");
+                    setForm((p) => ({ ...p, cnpj: v }));
+                  }}
                   style={inputStyle}
+                  maxLength={18}
                 />
               </div>
 
@@ -546,8 +555,35 @@ function PropostaDrawer({
                   type="text"
                   placeholder="R$ 0,00"
                   value={form.faturamento}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    if (!digits) {
+                      setForm((p) => ({ ...p, faturamento: "" }));
+                      return;
+                    }
+                    const num = parseInt(digits, 10) / 100;
+                    const formatted =
+                      "R$ " +
+                      num.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      });
+                    setForm((p) => ({ ...p, faturamento: formatted }));
+                  }}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* Funcionários */}
+              <div>
+                <label style={labelStyle}>Funcionários (Quantidade)</label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="0"
+                  value={form.funcionarios}
                   onChange={(e) =>
-                    setForm((p) => ({ ...p, faturamento: e.target.value }))
+                    setForm((p) => ({ ...p, funcionarios: e.target.value }))
                   }
                   style={inputStyle}
                 />

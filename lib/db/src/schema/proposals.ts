@@ -1,4 +1,4 @@
-import { pgTable, serial, text, date, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, date, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -12,6 +12,7 @@ export const proposalsTable = pgTable("proposals", {
   cnpj: text("cnpj"),
   regimeTributario: text("regime_tributario"),
   faturamentoMensal: text("faturamento_mensal"),
+  funcionarios: integer("funcionarios"),
   movimentacaoFinanceira: text("movimentacao_financeira"),
   mensagem: text("mensagem"),
   status: text("status").default("nova"),
