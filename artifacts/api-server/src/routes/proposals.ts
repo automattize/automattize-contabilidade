@@ -22,6 +22,7 @@ function formatProposalTxt(proposal: Record<string, unknown>, index?: number): s
     `  Recebida em: ${now}`,
     sep,
     `  Nome do Sócio / Solicitante : ${proposal.nomeSocio || "—"}`,
+    `  Telefone / Celular          : ${proposal.telefone || "Não informado"}`,
     `  E-mail                      : ${proposal.email || "—"}`,
     `  CNPJ                        : ${proposal.cnpj || "Não informado"}`,
     line,
@@ -39,7 +40,7 @@ function formatProposalTxt(proposal: Record<string, unknown>, index?: number): s
 router.post("/proposals", async (req, res) => {
   try {
     const {
-      dataSolicitacao, servicos, nomeSocio, email,
+      dataSolicitacao, servicos, nomeSocio, telefone, email,
       cnpj, regimeTributario, faturamentoMensal, funcionarios, movimentacaoFinanceira,
     } = req.body;
 
@@ -52,7 +53,7 @@ router.post("/proposals", async (req, res) => {
 
     const [proposal] = await db
       .insert(proposalsTable)
-      .values({ dataSolicitacao, servicos, nomeSocio, email, cnpj, regimeTributario, faturamentoMensal, funcionarios: funcionarios ?? null, movimentacaoFinanceira, status: "nova" })
+      .values({ dataSolicitacao, servicos, nomeSocio, telefone: telefone ?? null, email, cnpj, regimeTributario, faturamentoMensal, funcionarios: funcionarios ?? null, movimentacaoFinanceira, status: "nova" })
       .returning();
 
     try {

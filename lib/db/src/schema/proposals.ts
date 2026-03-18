@@ -8,6 +8,7 @@ export const proposalsTable = pgTable("proposals", {
   dataSolicitacao: date("data_solicitacao"),
   servicos: text("servicos").array(),
   nomeSocio: text("nome_socio").notNull(),
+  telefone: text("telefone"),
   email: text("email").notNull(),
   cnpj: text("cnpj"),
   regimeTributario: text("regime_tributario"),

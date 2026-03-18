@@ -59,6 +59,7 @@ function PropostaDrawer({
   const [movimentacao, setMovimentacao] = useState("");
   const [form, setForm] = useState({
     nome: "",
+    telefone: "",
     email: "",
     cnpj: "",
     faturamento: "",
@@ -101,6 +102,10 @@ function PropostaDrawer({
       setError("O nome do sócio / solicitante é obrigatório.");
       return;
     }
+    if (!form.telefone.trim()) {
+      setError("O telefone / celular é obrigatório.");
+      return;
+    }
     if (!form.email.trim()) {
       setError("O e-mail é obrigatório.");
       return;
@@ -115,6 +120,7 @@ function PropostaDrawer({
           dataSolicitacao: new Date().toISOString().split("T")[0],
           servicos,
           nomeSocio: form.nome,
+          telefone: form.telefone || null,
           email: form.email,
           cnpj: form.cnpj || null,
           regimeTributario: regime || null,
@@ -480,6 +486,31 @@ function PropostaDrawer({
                     setForm((p) => ({ ...p, nome: e.target.value }))
                   }
                   style={inputStyle}
+                />
+              </div>
+
+              {/* Telefone */}
+              <div>
+                <label style={labelStyle}>
+                  <span style={{ color: "#dc2626" }}>*</span> Telefone / Celular
+                </label>
+                <input
+                  type="text"
+                  placeholder="(61) 98672-1196"
+                  value={form.telefone}
+                  onChange={(e) => {
+                    let digits = e.target.value.replace(/\D/g, "");
+                    if (digits.length > 11) digits = digits.slice(0, 11);
+                    let v = digits;
+                    if (digits.length <= 10) {
+                      v = digits.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
+                    } else {
+                      v = digits.replace(/^(\d{2})(\d{5})(\d{0,4})$/, "($1) $2-$3");
+                    }
+                    setForm((p) => ({ ...p, telefone: v }));
+                  }}
+                  style={inputStyle}
+                  maxLength={16}
                 />
               </div>
 
@@ -2231,6 +2262,7 @@ function JornadaSection() {
               >
                 {/* Left content */}
                 <div
+                  className="jornada-left"
                   style={{
                     padding: "24px 40px 24px 0",
                     display: step.side === "left" ? "block" : "block",
@@ -2287,6 +2319,7 @@ function JornadaSection() {
 
                 {/* Center dot */}
                 <div
+                  className="jornada-dot"
                   style={{
                     display: "flex",
                     flexDirection: "column",
@@ -2313,7 +2346,7 @@ function JornadaSection() {
                 </div>
 
                 {/* Right content */}
-                <div style={{ padding: "24px 0 24px 40px" }}>
+                <div className="jornada-right" style={{ padding: "24px 0 24px 40px" }}>
                   {step.side === "right" ? (
                     <div
                       style={{
@@ -2359,7 +2392,7 @@ function JornadaSection() {
                       </p>
                     </div>
                   ) : (
-                    <div style={{ textAlign: "left" }}>
+                    <div className="jornada-step-label" style={{ textAlign: "left" }}>
                       <div
                         style={{
                           fontFamily: "'Montserrat',sans-serif",
@@ -2386,7 +2419,26 @@ function JornadaSection() {
       <style>{`
         @media(max-width:700px){
           .jornada-line{display:none}
-          .jornada-row{grid-template-columns:0 52px 1fr!important;gap:0 12px}
+          .jornada-row{
+            display:flex!important;
+            flex-direction:column!important;
+            align-items:flex-start!important;
+            margin-bottom:28px!important;
+          }
+          .jornada-dot{order:0;padding-bottom:12px}
+          .jornada-left{
+            order:1;
+            width:100%!important;
+            padding:0 0 12px 0!important;
+            opacity:1!important;
+            pointer-events:auto!important;
+          }
+          .jornada-right{
+            order:2;
+            width:100%!important;
+            padding:0!important;
+          }
+          .jornada-step-label{display:none!important}
         }
       `}</style>
     </section>
