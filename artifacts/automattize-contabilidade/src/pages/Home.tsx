@@ -113,22 +113,22 @@ function PropostaDrawer({
 
     setSending(true);
     try {
-      const res = await fetch(`${API}/proposals`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dataSolicitacao: new Date().toISOString().split("T")[0],
-          servicos,
-          nomeSocio: form.nome,
-          telefone: form.telefone || null,
-          email: form.email,
-          cnpj: form.cnpj || null,
-          regimeTributario: regime || null,
-          faturamentoMensal: form.faturamento || null,
-          funcionarios: form.funcionarios ? Number(form.funcionarios) : null,
-          movimentacaoFinanceira: movimentacao || null,
-        }),
-      });
+      const res = await fetch("https://formspree.io/f/xaqplgav", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    data: new Date().toISOString().split("T")[0],
+    servicos: servicos.join(", "),
+    nome: form.nome,
+    telefone: form.telefone || "",
+    email: form.email,
+    cnpj: form.cnpj || "",
+    regime_tributario: regime || "",
+    faturamento_mensal: form.faturamento || "",
+    funcionarios: form.funcionarios || "",
+    movimentacao_financeira: movimentacao || "",
+  }),
+});
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(
