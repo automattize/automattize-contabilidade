@@ -97,10 +97,7 @@ function PropostaDrawer({
     if (servicos.length === 0) {
       setError("Selecione pelo menos um serviço de interesse para continuar.");
       return;
- REEMBOLSO RATEIO DAS DESPESAS GERAIS
-(ALUGUEL, CONDOMÍNIO, ENERGIA, SEGURO,
-SAÚDE, ALIMENTAÇÃO E OUTRAS DESPESAS)
-P/ MARIA CONSUELO   }
+}
     if (!form.nome.trim()) {
       setError("O nome do sócio / solicitante é obrigatório.");
       return;
