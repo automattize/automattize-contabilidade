@@ -97,7 +97,7 @@ function PropostaDrawer({
     if (servicos.length === 0) {
       setError("Selecione pelo menos um serviço de interesse para continuar.");
       return;
-}
+    }
     if (!form.nome.trim()) {
       setError("O nome do sócio / solicitante é obrigatório.");
       return;
