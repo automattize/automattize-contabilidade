@@ -496,20 +496,7 @@ P/ MARIA CONSUELO   }
               <div>
                 <label style={labelStyle}>
                   <span style={{ color: "#dc2626" }}>*</span> Telefone / Celular
-                </label>
-                <input
-                  type="text"
-                  placeholder="(61) 99180-4169"
-                  value={form.telefone}
-                  onChange={(e) => {
-                    let digits = e.target.value.replace(/\D/g, "");
-                    if (digits.length > 11) digits = digits.slice(0, 11);
-                    let v = digits;
-                    if (digits.length <= 10) {
-                      v = digits.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
-                    } else {
-                      v = digits.replace(/^(\d{2})(\d{5})(\d{0,4})$/, "($1) $2-$3");
-                    }
+               
                     setForm((p) => ({ ...p, telefone: v }));
                   }}
                   style={inputStyle}
@@ -2890,7 +2877,7 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                   ),
                   l: "WhatsApp / Telefone",
                   v: "+55 61 99180-4169",
-                  href: "https://wa.me/556199180-4169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade.",
+                  href: "https://wa.me/5561991804169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade.",
                   badge: "Clique para conversar",
                   badgeColor: "#059669",
                 },
@@ -3200,7 +3187,7 @@ export default function Home() {
 
       {/* Floating WhatsApp Button */}
       <a
-        href="https://wa.me/556199180-4169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade."
+        href="https://wa.me/5561991804169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade."
         target="_blank"
         rel="noopener noreferrer"
         title="Fale conosco pelo WhatsApp"
