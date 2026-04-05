@@ -97,7 +97,10 @@ function PropostaDrawer({
     if (servicos.length === 0) {
       setError("Selecione pelo menos um serviço de interesse para continuar.");
       return;
-    }
+ REEMBOLSO RATEIO DAS DESPESAS GERAIS
+(ALUGUEL, CONDOMÍNIO, ENERGIA, SEGURO,
+SAÚDE, ALIMENTAÇÃO E OUTRAS DESPESAS)
+P/ MARIA CONSUELO   }
     if (!form.nome.trim()) {
       setError("O nome do sócio / solicitante é obrigatório.");
       return;
@@ -496,7 +499,7 @@ function PropostaDrawer({
                 </label>
                 <input
                   type="text"
-                  placeholder="(61) 98672-1196"
+                  placeholder="(61) 99180-4169"
                   value={form.telefone}
                   onChange={(e) => {
                     let digits = e.target.value.replace(/\D/g, "");
@@ -2886,8 +2889,8 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                     </svg>
                   ),
                   l: "WhatsApp / Telefone",
-                  v: "+55 61 98672-1196",
-                  href: "https://wa.me/5561986721196?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade.",
+                  v: "+55 61 99180-4169",
+                  href: "https://wa.me/556199180-4169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade.",
                   badge: "Clique para conversar",
                   badgeColor: "#059669",
                 },
