@@ -97,7 +97,7 @@ function PropostaDrawer({
     if (servicos.length === 0) {
       setError("Selecione pelo menos um serviço de interesse para continuar.");
       return;
-    }
+}
     if (!form.nome.trim()) {
       setError("O nome do sócio / solicitante é obrigatório.");
       return;
@@ -493,7 +493,20 @@ function PropostaDrawer({
               <div>
                 <label style={labelStyle}>
                   <span style={{ color: "#dc2626" }}>*</span> Telefone / Celular
-               
+                </label>
+                <input
+                  type="text"
+                  placeholder="(61) 99180-4169"
+                  value={form.telefone}
+                  onChange={(e) => {
+                    let digits = e.target.value.replace(/\D/g, "");
+                    if (digits.length > 11) digits = digits.slice(0, 11);
+                    let v = digits;
+                    if (digits.length <= 10) {
+                      v = digits.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
+                    } else {
+                      v = digits.replace(/^(\d{2})(\d{5})(\d{0,4})$/, "($1) $2-$3");
+                    }
                     setForm((p) => ({ ...p, telefone: v }));
                   }}
                   style={inputStyle}
