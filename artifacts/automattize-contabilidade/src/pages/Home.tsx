@@ -2958,7 +2958,7 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                   ),
                   l: "WhatsApp / Telefone",
                   v: "+55 61 99180-4169",
-                  href: "https://wa.me/5561991804169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade.",
+                  href: "https://wa.me/5561991804169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20AUTOMATTIZE%20CONTABILIDADE%20E%20BPO%20FINANCEIRO.",
                   badge: "Clique para conversar",
                   badgeColor: "#059669",
                 },
