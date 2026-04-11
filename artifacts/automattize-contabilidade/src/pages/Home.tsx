@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef } from "react";
+import {
+  sanitizeText,
+  isValidEmail,
+  isValidPhone,
+  isValidCNPJ,
+  isValidName,
+  checkRateLimit,
+  isBot,
+  containsMaliciousContent,
+  INPUT_LIMITS,
+  HONEYPOT_FIELD,
+} from "./security";
 
 const BASE = import.meta.env.BASE_URL;
-const API = "/api";
 
 function Logo({ size = 36 }: { size?: number }) {
   return (
@@ -57,6 +68,7 @@ function PropostaDrawer({
   const [servicos, setServicos] = useState<string[]>([]);
   const [regime, setRegime] = useState("");
   const [movimentacao, setMovimentacao] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [form, setForm] = useState({
     nome: "",
     telefone: "",
@@ -94,41 +106,86 @@ function PropostaDrawer({
     e.preventDefault();
     setError("");
 
+    // ── CAMADA 4: Honeypot anti-bot
+    if (isBot(honeypot)) {
+      setError("Envio bloqueado. Tente novamente.");
+      return;
+    }
+
+    // ── CAMADA 3: Rate limiting
+    const rate = checkRateLimit();
+    if (!rate.allowed) {
+      setError(`Muitas tentativas. Aguarde ${rate.minutesLeft} minuto(s).`);
+      return;
+    }
+
+    // ── CAMADA 1+2: Validações de formato e conteúdo
     if (servicos.length === 0) {
       setError("Selecione pelo menos um serviço de interesse para continuar.");
       return;
-}
+    }
     if (!form.nome.trim()) {
       setError("O nome do sócio / solicitante é obrigatório.");
+      return;
+    }
+    if (!isValidName(form.nome)) {
+      setError("Nome inválido. Mínimo 3 caracteres, sem caracteres especiais.");
       return;
     }
     if (!form.telefone.trim()) {
       setError("O telefone / celular é obrigatório.");
       return;
     }
+    if (!isValidPhone(form.telefone)) {
+      setError("Telefone inválido. Use o formato (61) 99999-9999.");
+      return;
+    }
     if (!form.email.trim()) {
       setError("O e-mail é obrigatório.");
       return;
     }
+    if (!isValidEmail(form.email)) {
+      setError("E-mail inválido. Verifique o formato.");
+      return;
+    }
+    if (form.cnpj.trim() && !isValidCNPJ(form.cnpj)) {
+      setError("CNPJ inválido. Verifique os dígitos informados.");
+      return;
+    }
 
+    // ── CAMADA 5: Detecção de conteúdo malicioso
+    const allFields = {
+      nome: form.nome,
+      email: form.email,
+      telefone: form.telefone,
+      cnpj: form.cnpj,
+      faturamento: form.faturamento,
+      funcionarios: form.funcionarios,
+    };
+    if (Object.values(allFields).some((v) => containsMaliciousContent(v))) {
+      setError("Conteúdo inválido detectado. Verifique os campos.");
+      return;
+    }
+
+    // ── CAMADA 1: Sanitização antes de enviar
     setSending(true);
     try {
       const res = await fetch("https://formspree.io/f/xaqplgav", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    data: new Date().toISOString().split("T")[0],
-    servicos: servicos.join(", "),
-    nome: form.nome,
-    telefone: form.telefone || "",
-    email: form.email,
-    cnpj: form.cnpj || "",
-    regime_tributario: regime || "",
-    faturamento_mensal: form.faturamento || "",
-    funcionarios: form.funcionarios || "",
-    movimentacao_financeira: movimentacao || "",
-  }),
-});
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: new Date().toISOString().split("T")[0],
+          servicos: servicos.join(", "),
+          nome: sanitizeText(form.nome, INPUT_LIMITS.nome),
+          telefone: sanitizeText(form.telefone, INPUT_LIMITS.telefone),
+          email: sanitizeText(form.email, INPUT_LIMITS.email),
+          cnpj: sanitizeText(form.cnpj, INPUT_LIMITS.cnpj),
+          regime_tributario: regime || "",
+          faturamento_mensal: sanitizeText(form.faturamento, INPUT_LIMITS.faturamento),
+          funcionarios: sanitizeText(form.funcionarios, INPUT_LIMITS.funcionarios),
+          movimentacao_financeira: movimentacao || "",
+        }),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(
@@ -486,6 +543,7 @@ function PropostaDrawer({
                     setForm((p) => ({ ...p, nome: e.target.value }))
                   }
                   style={inputStyle}
+                  maxLength={INPUT_LIMITS.nome}
                 />
               </div>
 
@@ -493,20 +551,7 @@ function PropostaDrawer({
               <div>
                 <label style={labelStyle}>
                   <span style={{ color: "#dc2626" }}>*</span> Telefone / Celular
-                </label>
-                <input
-                  type="text"
-                  placeholder="(61) 99180-4169"
-                  value={form.telefone}
-                  onChange={(e) => {
-                    let digits = e.target.value.replace(/\D/g, "");
-                    if (digits.length > 11) digits = digits.slice(0, 11);
-                    let v = digits;
-                    if (digits.length <= 10) {
-                      v = digits.replace(/^(\d{2})(\d{4})(\d{0,4})$/, "($1) $2-$3");
-                    } else {
-                      v = digits.replace(/^(\d{2})(\d{5})(\d{0,4})$/, "($1) $2-$3");
-                    }
+               
                     setForm((p) => ({ ...p, telefone: v }));
                   }}
                   style={inputStyle}
@@ -528,6 +573,7 @@ function PropostaDrawer({
                     setForm((p) => ({ ...p, email: e.target.value }))
                   }
                   style={inputStyle}
+                  maxLength={INPUT_LIMITS.email}
                 />
               </div>
 
@@ -646,6 +692,18 @@ function PropostaDrawer({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* HONEYPOT – invisível para humanos, bots preenchem */}
+              <div style={{ display: "none" }} aria-hidden="true">
+                <input
+                  type="text"
+                  name={HONEYPOT_FIELD}
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
               </div>
 
               {error && (
@@ -3175,7 +3233,7 @@ export default function Home() {
       "https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Lato:wght@300;400;700&display=swap";
     document.head.appendChild(link);
     document.title =
-      "AUTOMATTIZE CONTABILIDADE – Precisão, Estratégia e Resultado";
+      "Automattize Contabilidade – Precisão, Estratégia e Resultado";
   }, []);
 
   return (
