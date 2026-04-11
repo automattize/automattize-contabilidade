@@ -3268,7 +3268,7 @@ export default function Home() {
 
       {/* Floating WhatsApp Button */}
       <a
-        href="https://wa.me/5561991804169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade."
+        href="https://wa.me/5561991804169?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20AUTOMATTIZE%20CONTABILIDADE%20E%20BPO%20FINANCEIRO."
         target="_blank"
         rel="noopener noreferrer"
         title="Fale conosco pelo WhatsApp"
