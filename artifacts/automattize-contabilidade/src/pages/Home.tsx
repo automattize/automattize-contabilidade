@@ -2231,7 +2231,7 @@ function JornadaSection() {
       ),
       iconBg: "#2563eb",
       stepLabel: "Primeiro Passo",
-      stepSub: "Iniciando sua jornada Automattize",
+      stepSub: "Iniciando sua jornada AUTOMATTIZE",
     },
     {
       side: "right",
