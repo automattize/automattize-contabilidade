@@ -1141,7 +1141,7 @@ function HeroSection({ onProposta }: { onProposta: () => void }) {
           >
             Soluções contábeis, fiscais, trabalhistas e de{" "}
             <strong style={{ color: "#60a5fa" }}>BPO Financeiro</strong> para
-            empresas que desejam crescer com{" "}
+            médicos, advogados, dentistas, engenheiros, profissionais de tecnologia e empresas prestadoras de serviços que desejam crescer com{" "}
             <strong style={{ color: "#60a5fa" }}>
               planejamento, segurança e gestão eficiente
             </strong>
