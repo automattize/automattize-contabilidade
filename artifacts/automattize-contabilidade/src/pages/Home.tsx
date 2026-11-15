@@ -1104,9 +1104,9 @@ function HeroSection({ onProposta }: { onProposta: () => void }) {
               marginBottom: 10,
             }}
           >
-            AUTOMATTIZE
+            CONTADOR
             <br />
-            <span style={{ color: "#3b82f6" }}>CONTABILIDADE</span>
+            <span style={{ color: "#3b82f6" }}>KELVIN ANTONY</span>
           </h1>
           <div
             style={{
