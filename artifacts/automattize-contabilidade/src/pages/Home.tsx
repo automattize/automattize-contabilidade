@@ -3227,7 +3227,7 @@ function Footer() {
         segurança.
       </p>
       <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-        © {new Date().getFullYear()} CONTADOR KELVIN ANTONY. Todos os direitos reservados.
+        © {new Date().getFullYear()} KELVIN ANTONY CONTADOR. Todos os direitos reservados.
       </p>
     </footer>
   );
