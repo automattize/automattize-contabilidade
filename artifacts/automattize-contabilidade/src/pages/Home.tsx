@@ -33,7 +33,7 @@ function Logo({ size = 36 }: { size?: number }) {
             lineHeight: 1.1,
           }}
         >
-          AUTOMATTIZE
+          CONTADOR
         </div>
         <div
           style={{
@@ -45,7 +45,7 @@ function Logo({ size = 36 }: { size?: number }) {
             textTransform: "uppercase",
           }}
         >
-          CONTABILIDADE
+          KELVIN ANTONY
         </div>
       </div>
     </div>
