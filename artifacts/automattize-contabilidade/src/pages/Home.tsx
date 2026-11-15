@@ -33,7 +33,7 @@ function Logo({ size = 36 }: { size?: number }) {
             lineHeight: 1.1,
           }}
         >
-          CONTADOR
+          KELVIN ANTONY
         </div>
         <div
           style={{
@@ -45,7 +45,7 @@ function Logo({ size = 36 }: { size?: number }) {
             textTransform: "uppercase",
           }}
         >
-          KELVIN ANTONY
+          CONTADOR
         </div>
       </div>
     </div>
