@@ -2821,9 +2821,9 @@ function CEOSection() {
                 maxWidth: 540,
               }}
             >
-              Contador com sólida experiência em Lucro Real e BPO Financeiro.
+              Contador com experiência em empresas prestadoras de serviços e BPO Financeiro.
               Unindo precisão técnica e tecnologia, oferecendo soluções contábeis estratégicas para
-              empresas de todos os portes em Brasília e região, com atendimento
+              médicos, advogados, dentistas, engenheiros, profissionais de tecnologia de todos os portes em Brasília e região, com atendimento
               digital em todo o Brasil.
             </blockquote>
             <div
