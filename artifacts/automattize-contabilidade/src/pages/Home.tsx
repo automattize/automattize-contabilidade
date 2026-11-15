@@ -1104,9 +1104,9 @@ function HeroSection({ onProposta }: { onProposta: () => void }) {
               marginBottom: 10,
             }}
           >
-            CONTADOR
+            KELVIN ANTONY
             <br />
-            <span style={{ color: "#3b82f6" }}>KELVIN ANTONY</span>
+            <span style={{ color: "#3b82f6" }}>CONTADOR</span>
           </h1>
           <div
             style={{
