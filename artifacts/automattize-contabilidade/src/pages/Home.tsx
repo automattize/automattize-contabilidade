@@ -2977,7 +2977,7 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                   ),
                   l: "E-mail",
                   v: "contador.kelvinantony@gmail.com",
-                  href: "https://mail.google.com/mail/?view=cm&fs=1&to=contador.kelvinantony@gmail.com&su=Contato%20via%20Site%20Automattize&body=Ol%C3%A1%2C%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20da%20Automattize%20Contabilidade.",
+                  href: "https://mail.google.com/mail/?view=cm&fs=1&to=contador.kelvinantony@gmail.com&su=Contato%20via%20Site&body=Ol%C3%A1%2C%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20os%20servi%C3%A7os%20de%20Contabilidade.",
                   badge: "Clique para enviar",
                   badgeColor: "#2563eb",
                 },
