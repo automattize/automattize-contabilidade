@@ -2170,7 +2170,7 @@ function BPOSection() {
             {[
               "Valores conforme complexidade operacional",
               "Análise personalizada antes da proposta",
-              "A AUTOMATTIZE não realiza nenhum tipo de movimentação financeira",
+              "Não realizamos nenhum tipo de movimentação financeira",
             ].map((item, i) => (
               <div
                 key={i}
@@ -2216,7 +2216,7 @@ function JornadaSection() {
       tag: "ONBOARDING",
       tagColor: "#2563eb",
       title: "Bem-Vindo!",
-      desc: "Assim que você se torna cliente da AUTOMATTIZE, passa por um processo de ONBOARDING: reunião, orientação inicial, mapeamento da área e configuração das rotinas e demandas mensais.",
+      desc: "Assim que você se torna cliente passa por um processo de ONBOARDING: reunião, orientação inicial, mapeamento da área e configuração das rotinas e demandas mensais.",
       icon: (
         <svg
           width="26"
@@ -2231,7 +2231,7 @@ function JornadaSection() {
       ),
       iconBg: "#2563eb",
       stepLabel: "Primeiro Passo",
-      stepSub: "Iniciando sua jornada AUTOMATTIZE",
+      stepSub: "Iniciando sua jornada COMIGO",
     },
     {
       side: "right",
@@ -2299,7 +2299,7 @@ function JornadaSection() {
           >
             Fluxo de Jornada
             <br />
-            na <span style={{ color: "#2563eb" }}>AUTOMATTIZE</span>
+            aqui <span style={{ color: "#2563eb" }}>COMIGO</span>
           </h2>
         </div>
 
@@ -2648,8 +2648,8 @@ function Diferenciais() {
               letterSpacing: -0.5,
             }}
           >
-            Por que escolher a{" "}
-            <span style={{ color: "#2563eb" }}>AUTOMATTIZE?</span>
+            Por que me escolher como{" "}
+            <span style={{ color: "#2563eb" }}>CONTADOR?</span>
           </h2>
         </div>
         <div
@@ -2822,8 +2822,7 @@ function CEOSection() {
               }}
             >
               Contador com sólida experiência em Lucro Real e BPO Financeiro.
-              Fundador da AUTOMATTIZE, empresa criada para unir precisão técnica
-              e tecnologia, oferecendo soluções contábeis estratégicas para
+              Unindo precisão técnica e tecnologia, oferecendo soluções contábeis estratégicas para
               empresas de todos os portes em Brasília e região, com atendimento
               digital em todo o Brasil.
             </blockquote>
@@ -2931,7 +2930,7 @@ function Contato({ onProposta }: { onProposta: () => void }) {
                 marginBottom: 32,
               }}
             >
-              Entre em contato e descubra como a AUTOMATTIZE pode transformar a
+              Entre em contato e descubra como posso transformar a
               gestão contábil e financeira da sua empresa.
             </p>
             <div
