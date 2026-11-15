@@ -1721,7 +1721,7 @@ function Servicos() {
               maxWidth: 560,
             }}
           >
-            Equipe especializada em cada área para garantir conformidade,
+            Contador especialista em cada área para garantir conformidade,
             organização e resultados reais para o seu negócio.
           </p>
         </div>
