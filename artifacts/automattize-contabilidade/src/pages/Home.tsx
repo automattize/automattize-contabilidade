@@ -3244,7 +3244,7 @@ export default function Home() {
       "https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Lato:wght@300;400;700&display=swap";
     document.head.appendChild(link);
     document.title =
-      "AUTOMATTIZE CONTABILIDADE – Precisão, Estratégia e Resultado";
+      "CONTADOR KELVIN ANTONY – Precisão, Estratégia e Resultado";
   }, []);
 
   return (
